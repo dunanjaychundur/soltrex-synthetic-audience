@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthetic Audience Analyzer — Soltrex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f1;
+    --ink: #1a1916;
+    --ink-muted: #6b6a66;
+    --ink-faint: #b0afa9;
+    --surface: #ffffff;
+    --border: #e2e1dc;
+    --accent: #1a1916;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .wordmark {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    font-weight: 500;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+
+  .wordmark span {
+    color: var(--ink-faint);
+    font-size: 11px;
+    margin-left: 8px;
+    letter-spacing: 0.1em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .refresh-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--ink-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .refresh-btn:hover { background: var(--bg); color: var(--ink); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
+
+  .hero { margin-bottom: 3rem; }
+  .hero h1 { font-size: 2rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+  .hero p { font-size: 15px; color: var(--ink-muted); max-width: 520px; line-height: 1.6; }
+
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .url-input {
+    flex: 1;
+    height: 48px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .url-input:focus { border-color: var(--ink); }
+  .url-input::placeholder { color: var(--ink-faint); }
+
+  .analyze-btn {
+    height: 48px;
+    padding: 0 24px;
+    background: var(--ink);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+
+  .analyze-btn:hover { opacity: 0.85; }
+  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .clusters-row {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .clusters-label {
+    font-size: 12px;
+    color: var(--ink-muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .cluster-chip {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .cluster-chip.active {
+    background: var(--ink);
+    color: white;
+    border-color: var(--ink);
+  }
+
+  .status-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    margin-top: 1rem;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+
+  .status-bar.visible { display: flex; }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-bar {
+    display: none;
+    padding: 12px 16px;
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius);
+    margin-top: 1rem;
+    font-size: 13px;
+    color: #dc2626;
+  }
+
+  .error-bar.visible { display: block; }
+
+  .results { display: none; }
+  .results.visible { display: block; }
+
+  .video-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .video-thumb {
+    width: 140px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+
+  .video-meta h2 { font-size: 15px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+  .video-meta .channel { font-size: 13px; color: var(--ink-muted); margin-bottom: 8px; }
+
+  .real-stats {
+    display: flex;
+    gap: 16px;
+  }
+
+  .real-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .real-stat .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .real-stat .lbl {
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+
+  .summary-card .metric {
+    font-family: 'DM Mono', monospace;
+    font-size: 26px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+  }
+
+  .summary-card .metric-label {
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 1rem;
+  }
+
+  .segments-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 2rem;
+  }
+
+  .segment-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .segment-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .segment-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .segment-name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .segment-sentiment {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .sentiment-positive { background: #dcfce7; color: #166534; }
+  .sentiment-neutral { background: #f3f4f6; color: #374151; }
+  .sentiment-negative { background: #fee2e2; color: #991b1b; }
+  .sentiment-polarised { background: #fef3c7; color: #92400e; }
+
+  .segment-bars { margin-bottom: 1rem; }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .bar-label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .bar-val {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink-muted);
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .segment-comment {
+    font-size: 13px;
+    color: var(--ink-muted);
+    font-style: italic;
+    line-height: 1.5;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+  .segment-comment::before { content: '"'; }
+  .segment-comment::after { content: '"'; }
+
+  .segment-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  .segment-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .drop-off-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--ink-muted);
+    border: 1px solid var(--border);
+  }
+
+  .resonance-row {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  .resonance-row strong { color: var(--ink); font-weight: 500; }
+
+  @media (max-width: 768px) {
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .segments-grid { grid-template-columns: 1fr; }
+    .video-card { flex-direction: column; }
+    .video-thumb { width: 100%; height: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">SOLTREX <span>AI</span></div>
+  <div class="header-right">
+    <button class="refresh-btn" onclick="refreshNews()">↻ Refresh news</button>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Synthetic Audience Analyzer</h1>
+    <p>Paste a YouTube link. We run it through living persona segments grounded in today's news — and predict how each audience would react.</p>
+  </div>
+
+  <div class="input-card">
+    <div class="input-row">
+      <input
+        type="text"
+        class="url-input"
+        id="urlInput"
+        placeholder="https://www.youtube.com/watch?v=..."
+        onkeydown="if(event.key==='Enter') analyze()"
+      />
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyze</button>
+    </div>
+
+    <div class="clusters-row">
+      <span class="clusters-label">Segments:</span>
+      <div id="clusterChips"></div>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+      <div class="spinner"></div>
+      <span id="statusText">Extracting video data...</span>
+    </div>
+
+    <div class="error-bar" id="errorBar"></div>
+  </div>
+
+  <div class="results" id="results"></div>
+</main>
+
+<script>
+const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+
+const CLUSTERS = {
+  nyc_tech_worker: { label: 'NYC Tech Worker', color: '#5856D6' },
+  suburban_parent: { label: 'Suburban Parent', color: '#34C759' },
+  college_student: { label: 'College Student', color: '#FF9500' },
+  midwest_tradesperson: { label: 'Midwest Tradesperson', color: '#FF3B30' },
+  coastal_creative: { label: 'Coastal Creative', color: '#AF52DE' }
+};
+
+let selectedClusters = new Set(Object.keys(CLUSTERS));
+
+function initChips() {
+  const container = document.getElementById('clusterChips');
+  container.innerHTML = '';
+  for (const [id, info] of Object.entries(CLUSTERS)) {
+    const chip = document.createElement('div');
+    chip.className = 'cluster-chip active';
+    chip.textContent = info.label;
+    chip.dataset.id = id;
+    chip.onclick = () => toggleCluster(id, chip);
+    container.appendChild(chip);
+  }
+}
+
+function toggleCluster(id, el) {
+  if (selectedClusters.has(id)) {
+    if (selectedClusters.size === 1) return;
+    selectedClusters.delete(id);
+    el.classList.remove('active');
+  } else {
+    selectedClusters.add(id);
+    el.classList.add('active');
+  }
+}
+
+async function refreshNews() {
+  const btn = document.querySelector('.refresh-btn');
+  btn.textContent = '↻ Refreshing...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/news/refresh`, { method: 'POST' });
+    const data = await res.json();
+    btn.textContent = `✓ Updated ${data.updated_personas} personas`;
+    setTimeout(() => { btn.textContent = '↻ Refresh news'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    btn.textContent = 'Error — is backend running?';
+    setTimeout(() => { btn.textContent = '↻ Refresh news'; btn.disabled = false; }, 2000);
+  }
+}
+
+function setStatus(msg) {
+  const bar = document.getElementById('statusBar');
+  bar.classList.add('visible');
+  document.getElementById('statusText').textContent = msg;
+}
+
+function hideStatus() {
+  document.getElementById('statusBar').classList.remove('visible');
+}
+
+function showError(msg) {
+  const bar = document.getElementById('errorBar');
+  bar.textContent = msg;
+  bar.classList.add('visible');
+}
+
+function hideError() {
+  document.getElementById('errorBar').classList.remove('visible');
+}
+
+function fmtNum(n) {
+  if (!n) return '—';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+function sentimentClass(s) {
+  return `sentiment-${s || 'neutral'}`;
+}
+
+function renderResults(data) {
+  const video = data.video;
+  const summary = data.summary;
+  const reactions = data.segment_reactions;
+
+  const segmentCards = reactions.map(r => `
+    <div class="segment-card">
+      <div class="segment-accent" style="background: ${r.cluster_color}"></div>
+      <div class="segment-header">
+        <div>
+          <div class="segment-name">${r.cluster_label}</div>
+        </div>
+        <span class="segment-sentiment ${sentimentClass(r.sentiment)}">${r.sentiment}</span>
+      </div>
+
+      <div class="segment-bars">
+        <div class="bar-row">
+          <span class="bar-label">Watch rate</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: ${r.watch_completion}%; background: ${r.cluster_color}"></div>
+          </div>
+          <span class="bar-val">${r.watch_completion}%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Engagement</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: ${r.engagement_score}%; background: ${r.cluster_color}"></div>
+          </div>
+          <span class="bar-val">${r.engagement_score}%</span>
+        </div>
+      </div>
+
+      <div class="segment-comment">${r.simulated_comment || 'No comment simulated.'}</div>
+
+      <div class="segment-meta">
+        <span>Drop-off: <span class="drop-off-tag">${(r.drop_off_point || '').replace(/_/g, ' ')}</span></span>
+        <span>${r.would_share ? '↗ Would share' : ''}</span>
+        <span>${r.would_subscribe ? '+ Would subscribe' : ''}</span>
+      </div>
+
+      ${r.key_resonance ? `<div class="resonance-row"><strong>Resonance:</strong> ${r.key_resonance}</div>` : ''}
+      ${r.key_friction ? `<div class="resonance-row"><strong>Friction:</strong> ${r.key_friction}</div>` : ''}
+    </div>
+  `).join('');
+
+  document.getElementById('results').innerHTML = `
+    <div class="video-card">
+      ${video.thumbnail ? `<img class="video-thumb" src="${video.thumbnail}" alt="thumbnail" onerror="this.style.display='none'">` : ''}
+      <div class="video-meta">
+        <h2>${video.title || 'Video'}</h2>
+        <div class="channel">${video.channel || ''}</div>
+        <div class="real-stats">
+          <div class="real-stat"><span class="val">${fmtNum(video.real_views)}</span><span class="lbl">Real views</span></div>
+          <div class="real-stat"><span class="val">${fmtNum(video.real_likes)}</span><span class="lbl">Real likes</span></div>
+          <div class="real-stat"><span class="val">${Math.floor((video.duration || 0) / 60)}m ${(video.duration || 0) % 60}s</span><span class="lbl">Duration</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="metric">${summary.avg_watch_completion}%</div>
+        <div class="metric-label">Avg watch completion</div>
+      </div>
+      <div class="summary-card">
+        <div class="metric">${summary.avg_engagement_score}%</div>
+        <div class="metric-label">Avg engagement score</div>
+      </div>
+      <div class="summary-card">
+        <div class="metric">${summary.dominant_sentiment}</div>
+        <div class="metric-label">Dominant sentiment</div>
+      </div>
+      <div class="summary-card">
+        <div class="metric">${summary.predicted_share_rate}%</div>
+        <div class="metric-label">Would share</div>
+      </div>
+    </div>
+
+    <div class="section-title">Segment reactions</div>
+    <div class="segments-grid">${segmentCards}</div>
+  `;
+
+  document.getElementById('results').classList.add('visible');
+}
+
+async function analyze() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) return;
+
+  hideError();
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('analyzeBtn').disabled = true;
+
+  setStatus('Extracting video data via yt-dlp...');
+
+  try {
+    setStatus('Pulling transcript and metadata...');
+    const res = await fetch(`${API}/analyze/youtube`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        youtube_url: url,
+        cluster_ids: [...selectedClusters]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Analysis failed');
+    }
+
+    setStatus('Running synthetic audience reactions...');
+    const data = await res.json();
+
+    hideStatus();
+    renderResults(data);
+
+  } catch(e) {
+    hideStatus();
+    showError('Error: ' + e.message + ' — Make sure the backend is running on localhost:8000');
+  }
+
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+initChips();
+</script>
+</body>
+</html>

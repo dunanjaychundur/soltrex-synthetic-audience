@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+yt-dlp
+feedparser
+anthropic
+psycopg2-binary
+python-multipart
+httpx
+aiofiles

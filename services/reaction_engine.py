@@ -183,11 +183,20 @@ def run_full_analysis(video_data, cluster_ids):
 def run_nemotron_analysis(video_data, nemotron_segments):
     reactions = []
     for i, seg in enumerate(nemotron_segments):
+        seg = seg if isinstance(seg, dict) else seg.dict()
+        name = seg.get("name", f"Segment {i+1}")
         try:
+            # Fetch matching personas from database using segment criteria
+            personas = fetch_nemotron_personas(seg, sample_size=10)
+            if not personas:
+                print(f"No personas matched for segment: {name}")
+                continue
             reactions.append(generate_nemotron_segment_reaction(
-                seg["name"], seg["personas"], video_data, COLORS[i % len(COLORS)]
+                name, personas, video_data, COLORS[i % len(COLORS)]
             ))
-        except Exception as e: print(f"Nemotron reaction error {seg['name']}: {e}")
+            write_reaction_memory(name, video_data, reactions[-1])
+        except Exception as e:
+            print(f"Nemotron reaction error {name}: {e}")
     return {"video":_video_meta(video_data),"summary":_aggregate(reactions),"segment_reactions":reactions,"mode":"nemotron"}
 
 def fetch_nemotron_personas(segment_criteria, sample_size=10):

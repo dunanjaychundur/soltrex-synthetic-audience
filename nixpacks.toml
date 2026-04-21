@@ -1,2 +1,5 @@
 [phases.setup]
-nixPkgs = ["ffmpeg"]
+nixPkgs = ["ffmpeg", "ffprobe"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]

@@ -4,10 +4,39 @@ import tempfile
 import json
 import base64
 
+def get_ffmpeg_path():
+    """Get ffmpeg binary path — uses imageio-ffmpeg bundled binary if system ffmpeg not found."""
+    import shutil
+    system_ffmpeg = shutil.which("ffmpeg")
+    if system_ffmpeg:
+        return system_ffmpeg
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        raise RuntimeError("ffmpeg not found. Install imageio-ffmpeg or ffmpeg system package.")
+
+def get_ffprobe_path():
+    """Get ffprobe — falls back to same dir as ffmpeg."""
+    import shutil
+    system = shutil.which("ffprobe")
+    if system:
+        return system
+    # Try same directory as imageio ffmpeg binary
+    try:
+        import imageio_ffmpeg
+        ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+        ffprobe = os.path.join(os.path.dirname(ffmpeg_path), "ffprobe")
+        if os.path.exists(ffprobe):
+            return ffprobe
+    except Exception:
+        pass
+    return "ffprobe"
+
 def extract_frames(video_path: str, output_dir: str, interval_seconds: int = 10, max_frames: int = 8) -> list:
-    """Extract frames at intervals, capped at max_frames."""
+    ffmpeg = get_ffmpeg_path()
     cmd = [
-        "ffmpeg", "-i", video_path,
+        ffmpeg, "-i", video_path,
         "-vf", f"fps=1/{interval_seconds},scale=640:-1",
         "-q:v", "3",
         f"{output_dir}/frame_%04d.jpg",
@@ -22,7 +51,6 @@ def extract_frames(video_path: str, output_dir: str, interval_seconds: int = 10,
     return frames[:max_frames]
 
 def frames_to_base64(frame_paths: list) -> list:
-    """Convert frame images to base64 strings."""
     encoded = []
     for path in frame_paths:
         try:
@@ -33,16 +61,16 @@ def frames_to_base64(frame_paths: list) -> list:
     return encoded
 
 def transcribe_video(video_path: str) -> str:
-    """Transcribe using OpenAI Whisper API."""
     openai_key = os.environ.get("OPENAI_API_KEY")
     if not openai_key:
         print("OPENAI_API_KEY not set — skipping transcription.")
         return ""
 
+    ffmpeg    = get_ffmpeg_path()
     audio_path = video_path + ".mp3"
     try:
         subprocess.run([
-            "ffmpeg", "-i", video_path,
+            ffmpeg, "-i", video_path,
             "-vn", "-ar", "16000", "-ac", "1", "-b:a", "64k",
             audio_path, "-y", "-loglevel", "error"
         ], capture_output=True, timeout=120)
@@ -74,8 +102,9 @@ def transcribe_video(video_path: str) -> str:
 
 def get_video_metadata(video_path: str) -> dict:
     try:
-        result = subprocess.run([
-            "ffprobe", "-v", "quiet",
+        ffprobe = get_ffprobe_path()
+        result  = subprocess.run([
+            ffprobe, "-v", "quiet",
             "-print_format", "json",
             "-show_format", video_path
         ], capture_output=True, text=True, timeout=30)

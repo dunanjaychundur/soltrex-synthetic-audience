@@ -7,4 +7,3 @@ psycopg2-binary
 python-multipart
 httpx
 aiofiles
-openai-whisper

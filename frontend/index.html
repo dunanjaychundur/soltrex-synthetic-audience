@@ -432,6 +432,7 @@
 <header>
   <div class="wordmark">SOLTREX <span>AI</span></div>
   <div class="header-right">
+    <a href="/segments-ui" style="font-size:13px;color:var(--ink-muted);text-decoration:none;margin-right:16px">Segment builder</a>
     <button class="refresh-btn" onclick="refreshNews()">↻ Refresh news</button>
   </div>
 </header>
@@ -454,9 +455,23 @@
       <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyze</button>
     </div>
 
-    <div class="clusters-row">
-      <span class="clusters-label">Segments:</span>
-      <div id="clusterChips"></div>
+    <div class="clusters-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="clusters-label">Mode:</span>
+        <div id="modeToggle" style="display:flex;gap:6px">
+          <div class="cluster-chip active" id="modeCluster" onclick="setMode('clusters')">Default segments</div>
+          <div class="cluster-chip" id="modeNemotron" onclick="setMode('nemotron')">My Nemotron segments</div>
+        </div>
+      </div>
+      <div id="clusterRow" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <span class="clusters-label">Segments:</span>
+        <div id="clusterChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+      <div id="nemotronRow" style="display:none;flex-wrap:wrap;gap:8px;align-items:center">
+        <span class="clusters-label">Saved segments:</span>
+        <div id="nemotronChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        <a href="/segments-ui" style="font-size:12px;color:var(--ink-muted);text-decoration:none;border:1px solid var(--border);padding:5px 10px;border-radius:20px">+ Build segment</a>
+      </div>
     </div>
 
     <div class="status-bar" id="statusBar">
@@ -474,14 +489,29 @@
 const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
 
 const CLUSTERS = {
-  nyc_tech_worker: { label: 'NYC Tech Worker', color: '#5856D6' },
-  suburban_parent: { label: 'Suburban Parent', color: '#34C759' },
-  college_student: { label: 'College Student', color: '#FF9500' },
+  nyc_tech_worker:      { label: 'NYC Tech Worker',      color: '#5856D6' },
+  suburban_parent:      { label: 'Suburban Parent',      color: '#34C759' },
+  college_student:      { label: 'College Student',      color: '#FF9500' },
   midwest_tradesperson: { label: 'Midwest Tradesperson', color: '#FF3B30' },
-  coastal_creative: { label: 'Coastal Creative', color: '#AF52DE' }
+  coastal_creative:     { label: 'Coastal Creative',     color: '#AF52DE' }
 };
 
-let selectedClusters = new Set(Object.keys(CLUSTERS));
+let selectedClusters   = new Set(Object.keys(CLUSTERS));
+let selectedNemotron   = new Set();
+let currentMode        = 'clusters';
+let savedSegments      = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
+
+// ── Mode toggle ──────────────────────────────────────────────────────────────
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeCluster').classList.toggle('active', mode === 'clusters');
+  document.getElementById('modeNemotron').classList.toggle('active', mode === 'nemotron');
+  document.getElementById('clusterRow').style.display    = mode === 'clusters'  ? 'flex' : 'none';
+  document.getElementById('nemotronRow').style.display   = mode === 'nemotron'  ? 'flex' : 'none';
+}
+
+// ── Default cluster chips ────────────────────────────────────────────────────
 
 function initChips() {
   const container = document.getElementById('clusterChips');
@@ -494,6 +524,7 @@ function initChips() {
     chip.onclick = () => toggleCluster(id, chip);
     container.appendChild(chip);
   }
+  initNemotronChips();
 }
 
 function toggleCluster(id, el) {
@@ -507,136 +538,133 @@ function toggleCluster(id, el) {
   }
 }
 
+// ── Nemotron segment chips ───────────────────────────────────────────────────
+
+function initNemotronChips() {
+  savedSegments = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
+  const container = document.getElementById('nemotronChips');
+  container.innerHTML = '';
+  if (!savedSegments.length) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--ink-faint)">No saved segments yet</span>';
+    return;
+  }
+  savedSegments.forEach((seg, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'cluster-chip active';
+    chip.textContent = seg.name + ' (' + (seg.count || '?') + ')';
+    chip.dataset.idx = i;
+    chip.onclick = () => toggleNemotron(i, chip);
+    selectedNemotron.add(i);
+    container.appendChild(chip);
+  });
+}
+
+function toggleNemotron(idx, el) {
+  if (selectedNemotron.has(idx)) {
+    if (selectedNemotron.size === 1) return;
+    selectedNemotron.delete(idx);
+    el.classList.remove('active');
+  } else {
+    selectedNemotron.add(idx);
+    el.classList.add('active');
+  }
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+
 async function refreshNews() {
   const btn = document.querySelector('.refresh-btn');
   btn.textContent = '↻ Refreshing...';
   btn.disabled = true;
   try {
-    const res = await fetch(`${API}/news/refresh`, { method: 'POST' });
+    const res  = await fetch(`${API}/news/refresh`, { method: 'POST' });
     const data = await res.json();
-    btn.textContent = `✓ Updated ${data.updated_personas} personas`;
-    setTimeout(() => { btn.textContent = '↻ Refresh news'; btn.disabled = false; }, 2000);
+    btn.textContent = `✓ Inserted ${data.inserted_memories} memories`;
+    setTimeout(() => { btn.textContent = '↻ Refresh news'; btn.disabled = false; }, 2500);
   } catch(e) {
-    btn.textContent = 'Error — is backend running?';
+    btn.textContent = 'Error refreshing';
     setTimeout(() => { btn.textContent = '↻ Refresh news'; btn.disabled = false; }, 2000);
   }
 }
 
 function setStatus(msg) {
-  const bar = document.getElementById('statusBar');
-  bar.classList.add('visible');
+  document.getElementById('statusBar').classList.add('visible');
   document.getElementById('statusText').textContent = msg;
 }
+function hideStatus() { document.getElementById('statusBar').classList.remove('visible'); }
+function showError(msg) { const b = document.getElementById('errorBar'); b.textContent = msg; b.classList.add('visible'); }
+function hideError() { document.getElementById('errorBar').classList.remove('visible'); }
+function fmtNum(n) { if (!n) return '—'; if (n>=1e6) return (n/1e6).toFixed(1)+'M'; if (n>=1e3) return (n/1e3).toFixed(1)+'K'; return n.toLocaleString(); }
+function sentimentClass(s) { return `sentiment-${s||'neutral'}`; }
 
-function hideStatus() {
-  document.getElementById('statusBar').classList.remove('visible');
-}
-
-function showError(msg) {
-  const bar = document.getElementById('errorBar');
-  bar.textContent = msg;
-  bar.classList.add('visible');
-}
-
-function hideError() {
-  document.getElementById('errorBar').classList.remove('visible');
-}
-
-function fmtNum(n) {
-  if (!n) return '—';
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-  return n.toLocaleString();
-}
-
-function sentimentClass(s) {
-  return `sentiment-${s || 'neutral'}`;
-}
+// ── Render ───────────────────────────────────────────────────────────────────
 
 function renderResults(data) {
-  const video = data.video;
-  const summary = data.summary;
+  const video     = data.video;
+  const summary   = data.summary;
   const reactions = data.segment_reactions;
+  const isNemotron = data.mode === 'nemotron';
 
   const segmentCards = reactions.map(r => `
     <div class="segment-card">
-      <div class="segment-accent" style="background: ${r.cluster_color}"></div>
+      <div class="segment-accent" style="background:${r.cluster_color}"></div>
       <div class="segment-header">
         <div>
           <div class="segment-name">${r.cluster_label}</div>
+          ${isNemotron && r.persona_count ? `<div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${r.persona_count} Nemotron individuals</div>` : ''}
         </div>
         <span class="segment-sentiment ${sentimentClass(r.sentiment)}">${r.sentiment}</span>
       </div>
-
       <div class="segment-bars">
         <div class="bar-row">
           <span class="bar-label">Watch rate</span>
-          <div class="bar-track">
-            <div class="bar-fill" style="width: ${r.watch_completion}%; background: ${r.cluster_color}"></div>
-          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${r.watch_completion}%;background:${r.cluster_color}"></div></div>
           <span class="bar-val">${r.watch_completion}%</span>
         </div>
         <div class="bar-row">
           <span class="bar-label">Engagement</span>
-          <div class="bar-track">
-            <div class="bar-fill" style="width: ${r.engagement_score}%; background: ${r.cluster_color}"></div>
-          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${r.engagement_score}%;background:${r.cluster_color}"></div></div>
           <span class="bar-val">${r.engagement_score}%</span>
         </div>
       </div>
-
       <div class="segment-comment">${r.simulated_comment || 'No comment simulated.'}</div>
-
       <div class="segment-meta">
-        <span>Drop-off: <span class="drop-off-tag">${(r.drop_off_point || '').replace(/_/g, ' ')}</span></span>
+        <span>Drop-off: <span class="drop-off-tag">${(r.drop_off_point||'').replace(/_/g,' ')}</span></span>
         <span>${r.would_share ? '↗ Would share' : ''}</span>
         <span>${r.would_subscribe ? '+ Would subscribe' : ''}</span>
       </div>
-
       ${r.key_resonance ? `<div class="resonance-row"><strong>Resonance:</strong> ${r.key_resonance}</div>` : ''}
-      ${r.key_friction ? `<div class="resonance-row"><strong>Friction:</strong> ${r.key_friction}</div>` : ''}
+      ${r.key_friction  ? `<div class="resonance-row"><strong>Friction:</strong> ${r.key_friction}</div>` : ''}
+      ${r.segment_diversity_note ? `<div class="resonance-row" style="color:var(--ink-faint)"><strong>Within-segment split:</strong> ${r.segment_diversity_note}</div>` : ''}
     </div>
   `).join('');
 
   document.getElementById('results').innerHTML = `
     <div class="video-card">
-      ${video.thumbnail ? `<img class="video-thumb" src="${video.thumbnail}" alt="thumbnail" onerror="this.style.display='none'">` : ''}
+      ${video.thumbnail ? `<img class="video-thumb" src="${video.thumbnail}" alt="" onerror="this.style.display='none'">` : ''}
       <div class="video-meta">
-        <h2>${video.title || 'Video'}</h2>
-        <div class="channel">${video.channel || ''}</div>
+        <h2>${video.title||'Video'}</h2>
+        <div class="channel">${video.channel||''}</div>
         <div class="real-stats">
           <div class="real-stat"><span class="val">${fmtNum(video.real_views)}</span><span class="lbl">Real views</span></div>
           <div class="real-stat"><span class="val">${fmtNum(video.real_likes)}</span><span class="lbl">Real likes</span></div>
-          <div class="real-stat"><span class="val">${Math.floor((video.duration || 0) / 60)}m ${(video.duration || 0) % 60}s</span><span class="lbl">Duration</span></div>
+          <div class="real-stat"><span class="val">${Math.floor((video.duration||0)/60)}m ${(video.duration||0)%60}s</span><span class="lbl">Duration</span></div>
         </div>
       </div>
     </div>
-
     <div class="summary-grid">
-      <div class="summary-card">
-        <div class="metric">${summary.avg_watch_completion}%</div>
-        <div class="metric-label">Avg watch completion</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${summary.avg_engagement_score}%</div>
-        <div class="metric-label">Avg engagement score</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${summary.dominant_sentiment}</div>
-        <div class="metric-label">Dominant sentiment</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${summary.predicted_share_rate}%</div>
-        <div class="metric-label">Would share</div>
-      </div>
+      <div class="summary-card"><div class="metric">${summary.avg_watch_completion}%</div><div class="metric-label">Avg watch completion</div></div>
+      <div class="summary-card"><div class="metric">${summary.avg_engagement_score}%</div><div class="metric-label">Avg engagement score</div></div>
+      <div class="summary-card"><div class="metric">${summary.dominant_sentiment}</div><div class="metric-label">Dominant sentiment</div></div>
+      <div class="summary-card"><div class="metric">${summary.predicted_share_rate}%</div><div class="metric-label">Would share</div></div>
     </div>
-
-    <div class="section-title">Segment reactions</div>
+    <div class="section-title">Segment reactions ${isNemotron ? '— Nemotron panel' : '— Default segments'}</div>
     <div class="segments-grid">${segmentCards}</div>
   `;
-
   document.getElementById('results').classList.add('visible');
 }
+
+// ── Analyze ──────────────────────────────────────────────────────────────────
 
 async function analyze() {
   const url = document.getElementById('urlInput').value.trim();
@@ -645,34 +673,39 @@ async function analyze() {
   hideError();
   document.getElementById('results').classList.remove('visible');
   document.getElementById('analyzeBtn').disabled = true;
-
-  setStatus('Extracting video data via yt-dlp...');
+  setStatus('Extracting video data...');
 
   try {
-    setStatus('Pulling transcript and metadata...');
+    let body = { youtube_url: url };
+
+    if (currentMode === 'nemotron') {
+      const segs = [...selectedNemotron].map(i => ({
+        name: savedSegments[i].name,
+        ...savedSegments[i].criteria
+      }));
+      if (!segs.length) throw new Error('Select at least one Nemotron segment.');
+      body.nemotron_segments = segs;
+      body.mode = 'nemotron';
+      setStatus(`Running ${segs.length} Nemotron segment${segs.length>1?'s':''}...`);
+    } else {
+      body.cluster_ids = [...selectedClusters];
+      setStatus('Running default segment reactions...');
+    }
+
     const res = await fetch(`${API}/analyze/youtube`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        youtube_url: url,
-        cluster_ids: [...selectedClusters]
-      })
+      body: JSON.stringify(body)
     });
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Analysis failed');
-    }
-
-    setStatus('Running synthetic audience reactions...');
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Analysis failed'); }
     const data = await res.json();
-
     hideStatus();
     renderResults(data);
 
   } catch(e) {
     hideStatus();
-    showError('Error: ' + e.message + ' — Make sure the backend is running on localhost:8000');
+    showError('Error: ' + e.message);
   }
 
   document.getElementById('analyzeBtn').disabled = false;

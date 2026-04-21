@@ -461,11 +461,13 @@
       </div>
     </div>
     <div id="uploadTab" style="display:none">
-      <div class="input-row">
+      <div class="input-row" style="margin-bottom:10px">
         <input type="file" id="videoFile" accept=".mp4,.mov,.webm,.avi,.m4v" style="flex:1;height:48px;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-family:inherit;font-size:14px;background:var(--bg);color:var(--ink-muted);" />
         <button class="analyze-btn" id="uploadBtn" onclick="analyzeUpload()">Analyze</button>
       </div>
-      <div style="font-size:12px;color:var(--ink-faint);margin-top:8px">MP4, MOV or WebM · max 200MB · transcript generated automatically</div>
+      <input type="text" id="videoTitle" placeholder="Video title (e.g. Summer campaign ad — 30s cut)" class="url-input" style="margin-bottom:8px;width:100%" />
+      <textarea id="videoDescription" placeholder="Describe the video content — what happens, what's being promoted, tone, key messages. The more detail here the richer the reactions." style="width:100%;height:80px;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-family:inherit;font-size:14px;color:var(--ink);background:var(--bg);outline:none;resize:none;line-height:1.5"></textarea>
+      <div style="font-size:12px;color:var(--ink-faint);margin-top:6px">MP4, MOV or WebM · max 200MB · add a description for richer reactions if transcription isn't available</div>
     </div>
 
     <div class="clusters-row" style="flex-direction:column;align-items:flex-start;gap:10px">
@@ -746,11 +748,13 @@ async function analyzeUpload() {
   hideError();
   document.getElementById('results').classList.remove('visible');
   document.getElementById('uploadBtn').disabled = true;
-  setStatus(`Uploading and transcribing ${file.name}...`);
+  setStatus(`Uploading ${file.name}...`);
 
   try {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('title', document.getElementById('videoTitle').value || file.name);
+    formData.append('description', document.getElementById('videoDescription').value || '');
 
     if (currentMode === 'nemotron') {
       const segs = [...selectedNemotron].map(i => ({

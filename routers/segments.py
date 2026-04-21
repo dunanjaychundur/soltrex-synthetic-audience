@@ -49,9 +49,12 @@ def query_segment(q: SegmentQuery):
 
     if q.interest_keywords:
         keywords = [k.strip() for k in q.interest_keywords.split(",")]
-        int_conditions = " OR ".join(["LOWER(hobbies_and_interests) ILIKE %s"] * len(keywords))
+        int_conditions = " OR ".join([
+            "(LOWER(hobbies_and_interests) ILIKE %s OR LOWER(persona) ILIKE %s)"
+        ] * len(keywords))
         conditions.append(f"({int_conditions})")
-        params.extend([f"%{k.lower()}%" for k in keywords])
+        for k in keywords:
+            params.extend([f"%{k.lower()}%", f"%{k.lower()}%"])
 
     if q.political_affiliation:
         conditions.append("LOWER(political_affiliation) ILIKE %s")

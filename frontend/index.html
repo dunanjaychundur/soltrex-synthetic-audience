@@ -444,15 +444,28 @@
   </div>
 
   <div class="input-card">
-    <div class="input-row">
-      <input
-        type="text"
-        class="url-input"
-        id="urlInput"
-        placeholder="https://www.youtube.com/watch?v=..."
-        onkeydown="if(event.key==='Enter') analyze()"
-      />
-      <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyze</button>
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+      <div class="cluster-chip active" id="tabUrl" onclick="setTab('url')" style="border-radius:8px;padding:6px 14px">YouTube URL</div>
+      <div class="cluster-chip" id="tabUpload" onclick="setTab('upload')" style="border-radius:8px;padding:6px 14px">Upload video</div>
+    </div>
+    <div id="urlTab">
+      <div class="input-row">
+        <input
+          type="text"
+          class="url-input"
+          id="urlInput"
+          placeholder="https://www.youtube.com/watch?v=..."
+          onkeydown="if(event.key==='Enter') analyze()"
+        />
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyze</button>
+      </div>
+    </div>
+    <div id="uploadTab" style="display:none">
+      <div class="input-row">
+        <input type="file" id="videoFile" accept=".mp4,.mov,.webm,.avi,.m4v" style="flex:1;height:48px;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-family:inherit;font-size:14px;background:var(--bg);color:var(--ink-muted);" />
+        <button class="analyze-btn" id="uploadBtn" onclick="analyzeUpload()">Analyze</button>
+      </div>
+      <div style="font-size:12px;color:var(--ink-faint);margin-top:8px">MP4, MOV or WebM · max 200MB · transcript generated automatically</div>
     </div>
 
     <div class="clusters-row" style="flex-direction:column;align-items:flex-start;gap:10px">
@@ -635,6 +648,9 @@ function renderResults(data) {
       </div>
       ${r.key_resonance ? `<div class="resonance-row"><strong>Resonance:</strong> ${r.key_resonance}</div>` : ''}
       ${r.key_friction  ? `<div class="resonance-row"><strong>Friction:</strong> ${r.key_friction}</div>` : ''}
+      ${r.drop_off_reason ? `<div class="resonance-row"><strong>Drop-off:</strong> ${r.drop_off_reason}</div>` : ''}
+      ${r.purchase_or_action_intent ? `<div class="resonance-row"><strong>Action intent:</strong> ${r.purchase_or_action_intent}</div>` : ''}
+      ${r.authenticity_read ? `<div class="resonance-row"><strong>Authenticity:</strong> ${r.authenticity_read}</div>` : ''}
       ${r.segment_diversity_note ? `<div class="resonance-row" style="color:var(--ink-faint)"><strong>Within-segment split:</strong> ${r.segment_diversity_note}</div>` : ''}
     </div>
   `).join('');
@@ -712,6 +728,59 @@ async function analyze() {
 }
 
 initChips();
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function setTab(tab) {
+  document.getElementById('urlTab').style.display    = tab==='url'    ? 'block' : 'none';
+  document.getElementById('uploadTab').style.display = tab==='upload' ? 'block' : 'none';
+  document.getElementById('tabUrl').classList.toggle('active',    tab==='url');
+  document.getElementById('tabUpload').classList.toggle('active', tab==='upload');
+}
+
+// ── Upload analyze ────────────────────────────────────────────────────────────
+async function analyzeUpload() {
+  const fileInput = document.getElementById('videoFile');
+  if (!fileInput.files.length) { showError('Please select a video file.'); return; }
+
+  const file = fileInput.files[0];
+  hideError();
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('uploadBtn').disabled = true;
+  setStatus(`Uploading and transcribing ${file.name}...`);
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    if (currentMode === 'nemotron') {
+      const segs = [...selectedNemotron].map(i => ({
+        name: savedSegments[i].name,
+        ...savedSegments[i].criteria
+      }));
+      if (!segs.length) throw new Error('Select at least one Nemotron segment.');
+      formData.append('nemotron_segments', JSON.stringify(segs));
+      formData.append('mode', 'nemotron');
+    } else {
+      formData.append('cluster_ids', JSON.stringify([...selectedClusters]));
+      formData.append('mode', 'clusters');
+    }
+
+    setStatus('Transcribing audio and extracting frames...');
+    const res = await fetch(`${API}/upload/video`, { method: 'POST', body: formData });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'Upload failed'); }
+
+    setStatus('Running audience reactions...');
+    const data = await res.json();
+    hideStatus();
+    renderResults(data);
+
+  } catch(e) {
+    hideStatus();
+    showError('Error: ' + e.message);
+  }
+
+  document.getElementById('uploadBtn').disabled = false;
+}
 </script>
 </body>
 </html>

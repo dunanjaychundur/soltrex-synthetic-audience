@@ -6,16 +6,14 @@ from services.db import get_conn
 router = APIRouter()
 
 class SegmentQuery(BaseModel):
-    age_min:               Optional[int]  = 18
-    age_max:               Optional[int]  = 99
-    sex:                   Optional[str]  = None
-    state:                 Optional[str]  = None
-    education:             Optional[str]  = None
-    income_level:          Optional[str]  = None
-    occupation_keywords:   Optional[str]  = None
-    interest_keywords:     Optional[str]  = None
-    political_affiliation: Optional[str]  = None
-    limit:                 Optional[int]  = 50
+    age_min:             Optional[int]       = 18
+    age_max:             Optional[int]       = 99
+    sex:                 Optional[str]       = None
+    states:              Optional[list[str]] = None
+    educations:          Optional[list[str]] = None
+    occupation_keywords: Optional[str]       = None
+    interest_keywords:   Optional[str]       = None
+    limit:               Optional[int]       = 50
 
 @router.post("/query")
 def query_segment(q: SegmentQuery):
@@ -29,44 +27,36 @@ def query_segment(q: SegmentQuery):
         conditions.append("LOWER(sex) = LOWER(%s)")
         params.append(q.sex)
 
-    if q.state:
-        conditions.append("LOWER(state) = LOWER(%s)")
-        params.append(q.state)
+    if q.states:
+        placeholders = ",".join(["%s"] * len(q.states))
+        conditions.append(f"state IN ({placeholders})")
+        params.extend(q.states)
 
-    if q.education:
-        conditions.append("LOWER(education) ILIKE %s")
-        params.append(f"%{q.education.lower()}%")
-
-    if q.income_level:
-        conditions.append("LOWER(income_level) ILIKE %s")
-        params.append(f"%{q.income_level.lower()}%")
+    if q.educations:
+        placeholders = ",".join(["%s"] * len(q.educations))
+        conditions.append(f"education IN ({placeholders})")
+        params.extend(q.educations)
 
     if q.occupation_keywords:
         keywords = [k.strip() for k in q.occupation_keywords.split(",")]
-        occ_conditions = " OR ".join(["LOWER(occupation) ILIKE %s"] * len(keywords))
-        conditions.append(f"({occ_conditions})")
+        occ = " OR ".join(["LOWER(occupation) ILIKE %s"] * len(keywords))
+        conditions.append(f"({occ})")
         params.extend([f"%{k.lower()}%" for k in keywords])
 
     if q.interest_keywords:
         keywords = [k.strip() for k in q.interest_keywords.split(",")]
-        int_conditions = " OR ".join([
+        int_conds = " OR ".join([
             "(LOWER(hobbies_and_interests) ILIKE %s OR LOWER(persona) ILIKE %s)"
         ] * len(keywords))
-        conditions.append(f"({int_conditions})")
+        conditions.append(f"({int_conds})")
         for k in keywords:
             params.extend([f"%{k.lower()}%", f"%{k.lower()}%"])
 
-    if q.political_affiliation:
-        conditions.append("LOWER(political_affiliation) ILIKE %s")
-        params.append(f"%{q.political_affiliation.lower()}%")
-
     where = " AND ".join(conditions)
 
-    # Get total count
     cur.execute(f"SELECT COUNT(*) as cnt FROM nemotron_personas WHERE {where}", params)
     total = cur.fetchone()["cnt"]
 
-    # Get sample
     cur.execute(f"""
         SELECT persona_id, age, sex, state, city, education, occupation,
                income_level, political_affiliation, hobbies_and_interests,
@@ -78,30 +68,6 @@ def query_segment(q: SegmentQuery):
     """, params + [q.limit])
 
     personas = [dict(r) for r in cur.fetchall()]
-    cur.close()
-    conn.close()
-
-    return {
-        "total_matched": total,
-        "returned":      len(personas),
-        "personas":      personas
-    }
-
-@router.get("/saved")
-def get_saved_segments():
-    conn = get_conn()
-    cur  = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS saved_segments (
-            id         SERIAL PRIMARY KEY,
-            name       TEXT NOT NULL,
-            criteria   TEXT,
-            count      INT,
-            created_at TIMESTAMP DEFAULT NOW()
-        )
-    """)
-    conn.commit()
-    cur.execute("SELECT * FROM saved_segments ORDER BY created_at DESC")
-    rows = [dict(r) for r in cur.fetchall()]
     cur.close(); conn.close()
-    return {"segments": rows}
+
+    return {"total_matched": total, "returned": len(personas), "personas": personas}

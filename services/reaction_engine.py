@@ -12,7 +12,7 @@ COLORS = ["#5856D6","#34C759","#FF9500","#FF3B30","#AF52DE","#00C7BE","#FF2D55",
 def _call_claude(prompt):
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=1000,
+        max_tokens=2000,
         messages=[{"role": "user", "content": prompt}]
     )
     raw = re.sub(r"```json|```", "", response.content[0].text.strip()).strip()
@@ -49,7 +49,21 @@ Description: {(video_data.get('description') or '')[:300]}
 Transcript excerpt: {transcript}
 
 Respond ONLY with a JSON object — no preamble, no markdown:
-{{"watch_completion":<0-100>,"engagement_score":<0-100>,"sentiment":"<positive|neutral|negative|polarised>","would_share":<true|false>,"would_subscribe":<true|false>,"simulated_comment":"<1-2 sentences>","drop_off_point":"<immediate|first_30s|first_minute|halfway|completion>","reaction_summary":"<2-3 sentences>","key_resonance":"<or null>","key_friction":"<or null>"}}"""
+{{
+  "watch_completion": <0-100, be realistic — most people abandon videos>,
+  "engagement_score": <0-100>,
+  "sentiment": "<positive|neutral|negative|polarised>",
+  "would_share": <true|false>,
+  "would_subscribe": <true|false>,
+  "simulated_comment": "<a specific, genuine comment this person would leave — 3-5 sentences, in their natural voice, reflecting their actual background and mood. Reference something concrete from the video. Not generic.>",
+  "drop_off_point": "<immediate|first_30s|first_minute|halfway|completion>",
+  "drop_off_reason": "<exactly why they stopped — or why they stayed — be specific about what held or lost their attention>",
+  "reaction_summary": "<5-7 sentences. What emotionally landed, what felt off, how their background shaped their read of this content. Be specific to this demographic — avoid generic statements that could apply to anyone.>",
+  "key_resonance": "<the single most powerful thing that connected — reference something specific from the video and explain why it hit for this audience>",
+  "key_friction": "<the single biggest turn-off — tone, pacing, topic framing, presenter style, or relevance gap — be specific, or null>",
+  "purchase_or_action_intent": "<would this video move them to act — buy, visit, follow, try? Why or why not? Be honest if the answer is no.>",
+  "authenticity_read": "<did this feel genuine or produced? What specific signals gave that impression to this audience?>"
+}}"""
     result = _call_claude(prompt)
     result["cluster_id"]    = cluster_id
     result["cluster_label"] = cluster["label"]
@@ -83,7 +97,22 @@ Transcript excerpt: {transcript}
 Based on the specific backgrounds, interests and demographics of these real individuals, simulate how this segment as a whole would react. Consider the diversity within the segment.
 
 Respond ONLY with a JSON object — no preamble, no markdown:
-{{"watch_completion":<0-100>,"engagement_score":<0-100>,"sentiment":"<positive|neutral|negative|polarised>","would_share":<true|false>,"would_subscribe":<true|false>,"simulated_comment":"<1-2 sentences in their voice>","drop_off_point":"<immediate|first_30s|first_minute|halfway|completion>","reaction_summary":"<2-3 sentences referencing their actual backgrounds>","key_resonance":"<what connects with this segment or null>","key_friction":"<what puts them off or null>","segment_diversity_note":"<one sentence on where opinions diverge>"}}"""
+{{
+  "watch_completion": <0-100>,
+  "engagement_score": <0-100>,
+  "sentiment": "<positive|neutral|negative|polarised>",
+  "would_share": <true|false>,
+  "would_subscribe": <true|false>,
+  "simulated_comment": "<a specific comment one of these individuals would actually leave — 3-5 sentences, in their natural voice, referencing something concrete from the video>",
+  "drop_off_point": "<immediate|first_30s|first_minute|halfway|completion>",
+  "drop_off_reason": "<why they stopped or stayed — specific to this group>",
+  "reaction_summary": "<5-7 sentences on how this specific group of real people reacts. Reference their occupations, ages, locations where relevant. Note where the group agrees and where they diverge.>",
+  "key_resonance": "<what specifically connected with these individuals and why — reference the video and their backgrounds>",
+  "key_friction": "<what specifically put them off, or null>",
+  "segment_diversity_note": "<where do opinions split within this group? Who loved it, who didn't, and why?>",
+  "purchase_or_action_intent": "<would this move them to act? Be specific about which individuals might and which wouldn't.>",
+  "authenticity_read": "<did this feel real or polished to this group? What signals did they pick up on?>"
+}}"""
     result = _call_claude(prompt)
     result["cluster_id"]    = f"nemotron_{segment_name.lower().replace(' ','_')}"
     result["cluster_label"] = segment_name
@@ -261,7 +290,7 @@ Respond ONLY with a JSON object — no preamble, no markdown:
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=1000,
+        max_tokens=2000,
         messages=[{"role": "user", "content": prompt}]
     )
 
@@ -284,6 +313,35 @@ Respond ONLY with a JSON object — no preamble, no markdown:
     result["persona_count"] = len(personas)
     return result
 
+def write_reaction_memory(segment_name: str, video_data: dict, reaction: dict):
+    """Write analysis reaction back as a persona memory for future context."""
+    try:
+        from datetime import datetime
+        conn = get_conn()
+        cur  = conn.cursor()
+        memory_text = (
+            f"Reacted to a video titled '{video_data.get('title','')}' "
+            f"by '{video_data.get('channel','')}'. "
+            f"Sentiment: {reaction.get('sentiment','unknown')}. "
+            f"Watch completion: {reaction.get('watch_completion',0)}%. "
+            f"Key resonance: {reaction.get('key_resonance') or 'none'}. "
+            f"Key friction: {reaction.get('key_friction') or 'none'}."
+        )
+        cur.execute("""
+            INSERT INTO persona_memories (cluster_id, memory_text, topic, headline, memory_date)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            segment_name,
+            memory_text,
+            "video_reaction",
+            video_data.get('title','')[:200],
+            datetime.now().strftime("%Y-%m-%d")
+        ))
+        conn.commit()
+        cur.close(); conn.close()
+    except Exception as e:
+        print(f"Memory write-back error: {e}")
+
 def run_nemotron_analysis(video_data: dict, nemotron_segments: list) -> dict:
     """Run analysis using Nemotron persona segments."""
     reactions = []
@@ -295,6 +353,7 @@ def run_nemotron_analysis(video_data: dict, nemotron_segments: list) -> dict:
             personas = fetch_nemotron_personas(criteria, sample_size=10)
             reaction = generate_nemotron_reaction(name, personas, video_data)
             reactions.append(reaction)
+            write_reaction_memory(name, video_data, reaction)
         except Exception as e:
             print(f"Nemotron reaction error for {name}: {e}")
 

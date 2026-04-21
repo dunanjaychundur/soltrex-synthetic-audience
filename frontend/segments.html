@@ -6,71 +6,80 @@
 <title>Segment Builder — Soltrex</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#f5f4f1;--ink:#1a1916;--ink-muted:#6b6a66;--ink-faint:#b0afa9;--surface:#ffffff;--border:#e2e1dc;--radius:10px;--radius-lg:16px; }
-  * { box-sizing:border-box;margin:0;padding:0; }
-  body { font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh; }
-  header { background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100; }
-  .wordmark { font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.15em;font-weight:500;text-transform:uppercase; }
-  .wordmark span { color:var(--ink-faint);font-size:11px;margin-left:8px; }
-  .nav-links { display:flex;gap:20px; }
-  .nav-links a { font-size:13px;color:var(--ink-muted);text-decoration:none; }
-  .nav-links a:hover { color:var(--ink); }
-  main { max-width:1100px;margin:0 auto;padding:3rem 2rem; }
-  .hero { margin-bottom:2.5rem; }
-  .hero h1 { font-size:2rem;font-weight:500;letter-spacing:-0.02em;margin-bottom:0.5rem; }
-  .hero p { font-size:15px;color:var(--ink-muted);line-height:1.6;max-width:520px; }
-  .layout { display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start; }
-  .builder-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.75rem; }
-  .card-title { font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:1.5rem; }
-  .field { margin-bottom:1.25rem; }
-  .field label { display:block;font-size:13px;color:var(--ink-muted);margin-bottom:6px; }
-  .field input,.field select { width:100%;height:40px;border:1px solid var(--border);border-radius:var(--radius);padding:0 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--bg);outline:none;transition:border-color 0.15s; }
-  .field input:focus,.field select:focus { border-color:var(--ink); }
-  .field input::placeholder { color:var(--ink-faint); }
-  .field .hint { font-size:11px;color:var(--ink-faint);margin-top:4px; }
-  .range-row { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
-  .build-btn { width:100%;height:44px;background:var(--ink);color:white;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:0.5rem;transition:opacity 0.15s; }
-  .build-btn:hover { opacity:0.85; }
-  .build-btn:disabled { opacity:0.4;cursor:not-allowed; }
-  .status-bar { display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:var(--radius);margin-top:1rem;font-size:13px;color:var(--ink-muted); }
-  .status-bar.visible { display:flex; }
-  .spinner { width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .error-bar { display:none;padding:10px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:var(--radius);margin-top:1rem;font-size:13px;color:#dc2626; }
-  .error-bar.visible { display:block; }
-  .empty-state { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:3rem 2rem;text-align:center;color:var(--ink-muted);font-size:14px; }
-  .segment-header { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px; }
-  .segment-header h2 { font-size:18px;font-weight:500;margin-bottom:4px; }
-  .segment-header p { font-size:13px;color:var(--ink-muted); }
-  .segment-stats { display:flex;gap:20px;flex-shrink:0; }
-  .stat { text-align:right; }
-  .stat .val { font-family:'DM Mono',monospace;font-size:22px;font-weight:500; }
-  .stat .lbl { font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em; }
-  .save-btn { height:36px;padding:0 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink-muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0; }
-  .save-btn:hover { border-color:var(--ink);color:var(--ink); }
-  .breakdown-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px; }
-  .breakdown-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem; }
-  .breakdown-title { font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;font-family:'DM Mono',monospace; }
-  .breakdown-item { display:flex;align-items:center;gap:8px;margin-bottom:6px; }
-  .breakdown-label { font-size:12px;color:var(--ink-muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .breakdown-bar-track { width:60px;height:4px;background:var(--bg);border-radius:2px;flex-shrink:0; }
-  .breakdown-bar-fill { height:100%;border-radius:2px;background:var(--ink); }
-  .breakdown-pct { font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);width:28px;text-align:right;flex-shrink:0; }
-  .personas-table { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden; }
-  .table-header { padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:12px; }
-  .persona-row { padding:12px 16px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:12px;font-size:13px;transition:background 0.1s; }
-  .persona-row:last-child { border-bottom:none; }
-  .persona-row:hover { background:var(--bg); }
-  .pcell { display:flex;align-items:center; }
-  .pcell.muted { color:var(--ink-muted); }
-  .pcell.trunc { white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block; }
-  .saved-segments { margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border); }
-  .saved-title { font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px; }
-  .saved-chip { display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-muted);cursor:pointer;margin:0 4px 6px 0;transition:all 0.15s; }
-  .saved-chip:hover { border-color:var(--ink);color:var(--ink); }
-  .delete-chip { color:var(--ink-faint);font-size:14px;line-height:1; }
-  .delete-chip:hover { color:#dc2626; }
-  @media(max-width:900px) { .layout{grid-template-columns:1fr;} .breakdown-grid{grid-template-columns:1fr 1fr;} .table-header,.persona-row{grid-template-columns:2fr 1fr 1fr;} .table-header>*:nth-child(4),.persona-row>*:nth-child(4){display:none;} }
+  :root{--bg:#f5f4f1;--ink:#1a1916;--ink-muted:#6b6a66;--ink-faint:#b0afa9;--surface:#fff;--border:#e2e1dc;--radius:10px;--radius-lg:16px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .wordmark{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.15em;font-weight:500;text-transform:uppercase;}
+  .wordmark span{color:var(--ink-faint);font-size:11px;margin-left:8px;}
+  .nav-links{display:flex;gap:20px;}
+  .nav-links a{font-size:13px;color:var(--ink-muted);text-decoration:none;}
+  .nav-links a:hover{color:var(--ink);}
+  main{max-width:1100px;margin:0 auto;padding:3rem 2rem;}
+  .hero{margin-bottom:2.5rem;}
+  .hero h1{font-size:2rem;font-weight:500;letter-spacing:-0.02em;margin-bottom:0.5rem;}
+  .hero p{font-size:15px;color:var(--ink-muted);line-height:1.6;max-width:520px;}
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start;}
+  .builder-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.75rem;}
+  .card-title{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:1.5rem;}
+  .field{margin-bottom:1.25rem;}
+  .field label{display:block;font-size:13px;color:var(--ink-muted);margin-bottom:6px;}
+  .field input,.field select{width:100%;height:40px;border:1px solid var(--border);border-radius:var(--radius);padding:0 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--bg);outline:none;transition:border-color 0.15s;}
+  .field input:focus,.field select:focus{border-color:var(--ink);}
+  .field input::placeholder{color:var(--ink-faint);}
+  .field .hint{font-size:11px;color:var(--ink-faint);margin-top:4px;}
+  .range-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+  /* Multi-select panel */
+  .multi-select{border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);max-height:140px;overflow-y:auto;padding:8px;}
+  .multi-select label{display:flex;align-items:center;gap:8px;padding:3px 6px;font-size:13px;cursor:pointer;border-radius:6px;transition:background 0.1s;}
+  .multi-select label:hover{background:var(--surface);}
+  .multi-select input[type=checkbox]{width:14px;height:14px;accent-color:var(--ink);cursor:pointer;}
+  .select-all-row{display:flex;justify-content:flex-end;margin-bottom:4px;}
+  .select-all-btn{font-size:11px;color:var(--ink-faint);background:none;border:none;cursor:pointer;padding:0;}
+  .select-all-btn:hover{color:var(--ink-muted);}
+
+  .build-btn{width:100%;height:44px;background:var(--ink);color:white;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:0.5rem;transition:opacity 0.15s;}
+  .build-btn:hover{opacity:0.85;}
+  .build-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .status-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:var(--radius);margin-top:1rem;font-size:13px;color:var(--ink-muted);}
+  .status-bar.visible{display:flex;}
+  .spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .error-bar{display:none;padding:10px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:var(--radius);margin-top:1rem;font-size:13px;color:#dc2626;}
+  .error-bar.visible{display:block;}
+  .empty-state{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:3rem 2rem;text-align:center;color:var(--ink-muted);font-size:14px;}
+  .segment-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .segment-header h2{font-size:18px;font-weight:500;margin-bottom:4px;}
+  .segment-header p{font-size:13px;color:var(--ink-muted);}
+  .segment-stats{display:flex;gap:20px;flex-shrink:0;}
+  .stat{text-align:right;}
+  .stat .val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;}
+  .stat .lbl{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;}
+  .save-btn{height:36px;padding:0 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink-muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+  .save-btn:hover{border-color:var(--ink);color:var(--ink);}
+  .breakdown-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .breakdown-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;}
+  .breakdown-title{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;font-family:'DM Mono',monospace;}
+  .breakdown-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .breakdown-label{font-size:12px;color:var(--ink-muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .breakdown-bar-track{width:60px;height:4px;background:var(--bg);border-radius:2px;flex-shrink:0;}
+  .breakdown-bar-fill{height:100%;border-radius:2px;background:var(--ink);}
+  .breakdown-pct{font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);width:28px;text-align:right;flex-shrink:0;}
+  .personas-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+  .table-header{padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-family:'DM Mono',monospace;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.08em;display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:12px;}
+  .persona-row{padding:12px 16px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:12px;font-size:13px;transition:background 0.1s;}
+  .persona-row:last-child{border-bottom:none;}
+  .persona-row:hover{background:var(--bg);}
+  .pcell{display:flex;align-items:center;}
+  .pcell.muted{color:var(--ink-muted);}
+  .pcell.trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+  .saved-segments{margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);}
+  .saved-title{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px;}
+  .saved-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-muted);cursor:pointer;margin:0 4px 6px 0;transition:all 0.15s;}
+  .saved-chip:hover{border-color:var(--ink);color:var(--ink);}
+  .del-btn{color:var(--ink-faint);font-size:15px;line-height:1;background:none;border:none;cursor:pointer;padding:0 0 0 4px;}
+  .del-btn:hover{color:#dc2626;}
 </style>
 </head>
 <body>
@@ -86,17 +95,20 @@
   <div class="layout">
     <div class="builder-card">
       <div class="card-title">Define segment</div>
+
       <div class="field">
         <label>Segment name</label>
         <input type="text" id="segmentName" placeholder="e.g. Young urban professionals" />
       </div>
+
       <div class="field">
         <label>Age range</label>
         <div class="range-row">
           <input type="number" id="ageMin" placeholder="Min" min="18" max="99" value="25" />
-          <input type="number" id="ageMax" placeholder="Max" min="18" max="99" value="35" />
+          <input type="number" id="ageMax" placeholder="Max" min="18" max="99" value="45" />
         </div>
       </div>
+
       <div class="field">
         <label>Sex</label>
         <select id="sex">
@@ -105,48 +117,40 @@
           <option value="Female">Female</option>
         </select>
       </div>
+
       <div class="field">
-        <label>State</label>
-        <select id="state">
-          <option value="">Any state</option>
-          <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
-          <option>CA</option><option>CO</option><option>CT</option><option>DE</option>
-          <option>FL</option><option>GA</option><option>HI</option><option>ID</option>
-          <option>IL</option><option>IN</option><option>IA</option><option>KS</option>
-          <option>KY</option><option>LA</option><option>ME</option><option>MD</option>
-          <option>MA</option><option>MI</option><option>MN</option><option>MS</option>
-          <option>MO</option><option>MT</option><option>NE</option><option>NV</option>
-          <option>NH</option><option>NJ</option><option>NM</option><option>NY</option>
-          <option>NC</option><option>ND</option><option>OH</option><option>OK</option>
-          <option>OR</option><option>PA</option><option>RI</option><option>SC</option>
-          <option>SD</option><option>TN</option><option>TX</option><option>UT</option>
-          <option>VT</option><option>VA</option><option>WA</option><option>WV</option>
-          <option>WI</option><option>WY</option>
-        </select>
+        <label>States <span style="color:var(--ink-faint);font-size:11px">(select multiple)</span></label>
+        <div class="select-all-row">
+          <button class="select-all-btn" onclick="toggleAllStates()">Select / clear all</button>
+        </div>
+        <div class="multi-select" id="stateList"></div>
       </div>
+
       <div class="field">
-        <label>Education</label>
-        <select id="education">
-          <option value="">Any</option>
-          <option value="less_than_9th">Less than 9th grade</option>
-          <option value="9th_12th_no_diploma">9th–12th, no diploma</option>
-          <option value="high_school">High school diploma</option>
-          <option value="some_college">Some college</option>
-          <option value="associates">Associate's degree</option>
-          <option value="bachelors">Bachelor's degree</option>
-          <option value="graduate">Graduate degree</option>
-        </select>
+        <label>Education <span style="color:var(--ink-faint);font-size:11px">(select multiple)</span></label>
+        <div class="multi-select" id="eduList">
+          <label><input type="checkbox" value="less_than_9th"> Less than 9th grade</label>
+          <label><input type="checkbox" value="9th_12th_no_diploma"> 9th–12th, no diploma</label>
+          <label><input type="checkbox" value="high_school"> High school diploma</label>
+          <label><input type="checkbox" value="some_college"> Some college</label>
+          <label><input type="checkbox" value="associates"> Associate's degree</label>
+          <label><input type="checkbox" value="bachelors"> Bachelor's degree</label>
+          <label><input type="checkbox" value="graduate"> Graduate degree</label>
+        </div>
       </div>
+
       <div class="field">
         <label>Occupation keywords</label>
         <input type="text" id="occupation" placeholder="e.g. engineer, teacher, nurse" />
-        <div class="hint">Separate multiple keywords with commas</div>
+        <div class="hint">Comma-separated</div>
       </div>
+
       <div class="field">
         <label>Interest / hobby keywords</label>
         <input type="text" id="interests" placeholder="e.g. gaming, fitness, cooking" />
-        <div class="hint">Searches full persona narrative — be descriptive</div>
+        <div class="hint">Searches full persona narrative</div>
       </div>
+
       <div class="field">
         <label>Max personas to pull</label>
         <select id="limit">
@@ -155,10 +159,12 @@
           <option value="100">100 — deep panel</option>
         </select>
       </div>
+
       <button class="build-btn" id="buildBtn" onclick="buildSegment()">Build segment</button>
       <div class="status-bar" id="statusBar"><div class="spinner"></div><span>Querying Nemotron personas...</span></div>
       <div class="error-bar" id="errorBar"></div>
-      <div class="saved-segments" id="savedSegmentsPanel" style="display:none">
+
+      <div class="saved-segments" id="savedPanel" style="display:none">
         <div class="saved-title">Saved segments</div>
         <div id="savedChips"></div>
       </div>
@@ -171,88 +177,103 @@
 </main>
 <script>
 const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 let savedSegments = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
 
+function initStates() {
+  const list = document.getElementById('stateList');
+  list.innerHTML = STATES.map(s =>
+    `<label><input type="checkbox" value="${s}"> ${s}</label>`
+  ).join('');
+}
+
+function toggleAllStates() {
+  const boxes = document.querySelectorAll('#stateList input[type=checkbox]');
+  const allChecked = [...boxes].every(b => b.checked);
+  boxes.forEach(b => b.checked = !allChecked);
+}
+
+function getChecked(containerId) {
+  return [...document.querySelectorAll(`#${containerId} input[type=checkbox]:checked`)].map(b => b.value);
+}
+
 function renderSavedChips() {
-  const panel = document.getElementById('savedSegmentsPanel');
+  const panel = document.getElementById('savedPanel');
   const chips  = document.getElementById('savedChips');
-  if (!savedSegments.length) { panel.style.display = 'none'; return; }
+  if (!savedSegments.length) { panel.style.display='none'; return; }
   panel.style.display = 'block';
-  chips.innerHTML = savedSegments.map((s, i) =>
-    `<span class="saved-chip" onclick="loadSegment(${i})">↗ ${s.name} <span style="color:var(--ink-faint)">(${s.count||'?'})</span></span>
-     <span class="delete-chip" title="Delete" onclick="deleteSegment(${i})">×</span>`
+  chips.innerHTML = savedSegments.map((s,i) =>
+    `<span class="saved-chip" onclick="loadSegment(${i})">↗ ${s.name} <span style="color:var(--ink-faint)">(${s.count||'?'})</span></span><button class="del-btn" onclick="deleteSegment(${i})">×</button>`
   ).join(' ');
 }
 
 function loadSegment(i) {
   const s = savedSegments[i];
-  document.getElementById('segmentName').value    = s.name;
-  document.getElementById('ageMin').value         = s.criteria.age_min || 18;
-  document.getElementById('ageMax').value         = s.criteria.age_max || 99;
-  document.getElementById('sex').value            = s.criteria.sex || '';
-  document.getElementById('state').value          = s.criteria.state || '';
-  document.getElementById('education').value      = s.criteria.education || '';
-  document.getElementById('occupation').value     = s.criteria.occupation_keywords || '';
-  document.getElementById('interests').value      = s.criteria.interest_keywords || '';
-  document.getElementById('limit').value          = s.criteria.limit || 50;
+  document.getElementById('segmentName').value = s.name;
+  document.getElementById('ageMin').value      = s.criteria.age_min || 18;
+  document.getElementById('ageMax').value      = s.criteria.age_max || 99;
+  document.getElementById('sex').value         = s.criteria.sex || '';
+  document.getElementById('occupation').value  = s.criteria.occupation_keywords || '';
+  document.getElementById('interests').value   = s.criteria.interest_keywords || '';
+  document.getElementById('limit').value       = s.criteria.limit || 50;
+  const savedStates = s.criteria.states || [];
+  document.querySelectorAll('#stateList input').forEach(b => { b.checked = savedStates.includes(b.value); });
+  const savedEdus = s.criteria.educations || [];
+  document.querySelectorAll('#eduList input').forEach(b => { b.checked = savedEdus.includes(b.value); });
   buildSegment();
 }
 
 function deleteSegment(i) {
-  savedSegments.splice(i, 1);
+  savedSegments.splice(i,1);
   localStorage.setItem('soltrex_segments', JSON.stringify(savedSegments));
   renderSavedChips();
 }
 
 function saveSegment(name, criteria, count) {
   const idx = savedSegments.findIndex(s => s.name === name);
-  const entry = { name, criteria, count };
-  if (idx >= 0) savedSegments[idx] = entry; else savedSegments.push(entry);
+  const entry = {name, criteria, count};
+  if (idx>=0) savedSegments[idx]=entry; else savedSegments.push(entry);
   localStorage.setItem('soltrex_segments', JSON.stringify(savedSegments));
   renderSavedChips();
 }
 
 function getCriteria() {
+  const states = getChecked('stateList');
+  const edus   = getChecked('eduList');
   return {
-    age_min:             parseInt(document.getElementById('ageMin').value) || 18,
-    age_max:             parseInt(document.getElementById('ageMax').value) || 99,
-    sex:                 document.getElementById('sex').value || null,
-    state:               document.getElementById('state').value || null,
-    education:           document.getElementById('education').value || null,
-    occupation_keywords: document.getElementById('occupation').value || null,
-    interest_keywords:   document.getElementById('interests').value || null,
-    limit:               parseInt(document.getElementById('limit').value) || 50,
+    age_min:             parseInt(document.getElementById('ageMin').value)||18,
+    age_max:             parseInt(document.getElementById('ageMax').value)||99,
+    sex:                 document.getElementById('sex').value||null,
+    states:              states.length ? states : null,
+    educations:          edus.length ? edus : null,
+    occupation_keywords: document.getElementById('occupation').value||null,
+    interest_keywords:   document.getElementById('interests').value||null,
+    limit:               parseInt(document.getElementById('limit').value)||50,
   };
 }
 
-function pct(n, total) { return total ? Math.round(n/total*100) : 0; }
-function topN(arr, n=5) {
-  const counts = {};
-  arr.forEach(v => { if(v) { const k = v.replace(/_/g,' '); counts[k]=(counts[k]||0)+1; } });
-  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,n);
+function pct(n,total){return total?Math.round(n/total*100):0;}
+function topN(arr,n=5){
+  const c={};
+  arr.forEach(v=>{if(v){const k=v.replace(/_/g,' ');c[k]=(c[k]||0)+1;}});
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,n);
 }
-
-function renderBreakdown(title, items, total) {
-  if (!items.length) return '';
-  const max = items[0][1];
-  return `<div class="breakdown-card">
-    <div class="breakdown-title">${title}</div>
-    ${items.map(([label, count]) => `
-      <div class="breakdown-item">
-        <span class="breakdown-label">${label||'Unknown'}</span>
-        <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
-        <span class="breakdown-pct">${pct(count,total)}%</span>
-      </div>`).join('')}
-  </div>`;
+function renderBreakdown(title,items,total){
+  if(!items.length)return'';
+  const max=items[0][1];
+  return`<div class="breakdown-card"><div class="breakdown-title">${title}</div>${items.map(([label,count])=>`
+    <div class="breakdown-item">
+      <span class="breakdown-label">${label||'Unknown'}</span>
+      <div class="breakdown-bar-track"><div class="breakdown-bar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
+      <span class="breakdown-pct">${pct(count,total)}%</span>
+    </div>`).join('')}</div>`;
 }
 
 function renderResults(data, name, criteria) {
-  const personas = data.personas;
-  const total    = data.total_matched;
-  const ages     = personas.map(p=>p.age).filter(Boolean);
-  const avgAge   = ages.length ? Math.round(ages.reduce((a,b)=>a+b,0)/ages.length) : '—';
-
-  const rows = personas.slice(0,20).map(p => `
+  const personas=data.personas, total=data.total_matched;
+  const ages=personas.map(p=>p.age).filter(Boolean);
+  const avgAge=ages.length?Math.round(ages.reduce((a,b)=>a+b,0)/ages.length):'—';
+  const rows=personas.slice(0,20).map(p=>`
     <div class="persona-row">
       <div class="pcell trunc">${(p.occupation||'—').replace(/_/g,' ')}</div>
       <div class="pcell muted">${p.age||'—'}, ${p.sex||'—'}</div>
@@ -260,65 +281,66 @@ function renderResults(data, name, criteria) {
       <div class="pcell trunc muted">${(p.hobbies_and_interests||'—').slice(0,100)}</div>
     </div>`).join('');
 
-  document.getElementById('results').innerHTML = `
+  document.getElementById('results').innerHTML=`
     <div class="segment-header">
       <div>
         <h2>${name||'Unnamed segment'}</h2>
         <p>Showing ${personas.length} of ${total.toLocaleString()} matching personas · avg age ${avgAge}</p>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:12px">
         <div class="segment-stats">
           <div class="stat"><div class="val">${total.toLocaleString()}</div><div class="lbl">Matched</div></div>
           <div class="stat"><div class="val">${avgAge}</div><div class="lbl">Avg age</div></div>
         </div>
-        <button class="save-btn" onclick="saveAndConfirm('${(name||'Segment').replace(/'/g,"\\'")}', ${JSON.stringify(criteria).replace(/"/g,"'")}, ${total})">Save segment</button>
+        <button class="save-btn" id="saveBtn" onclick="confirmSave()">Save segment</button>
       </div>
     </div>
     <div class="breakdown-grid">
-      ${renderBreakdown('Sex', topN(personas.map(p=>p.sex)), personas.length)}
-      ${renderBreakdown('State', topN(personas.map(p=>p.state)), personas.length)}
-      ${renderBreakdown('Education', topN(personas.map(p=>p.education)), personas.length)}
+      ${renderBreakdown('Sex',topN(personas.map(p=>p.sex)),personas.length)}
+      ${renderBreakdown('State',topN(personas.map(p=>p.state)),personas.length)}
+      ${renderBreakdown('Education',topN(personas.map(p=>p.education)),personas.length)}
     </div>
     <div class="personas-table">
       <div class="table-header"><span>Occupation</span><span>Age / Sex</span><span>State</span><span>Interests</span></div>
       ${rows}
     </div>`;
+
+  window._lastName     = name;
+  window._lastCriteria = criteria;
+  window._lastCount    = total;
 }
 
-function saveAndConfirm(name, criteria, count) {
-  saveSegment(name, criteria, count);
-  const btn = document.querySelector('.save-btn');
-  if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = 'Save segment'; }, 1500); }
+function confirmSave() {
+  saveSegment(window._lastName, window._lastCriteria, window._lastCount);
+  const btn = document.getElementById('saveBtn');
+  if (btn) { btn.textContent='✓ Saved'; setTimeout(()=>{btn.textContent='Save segment';},1500); }
 }
 
 async function buildSegment() {
   const criteria = getCriteria();
-  const name     = document.getElementById('segmentName').value || 'Unnamed segment';
+  const name     = document.getElementById('segmentName').value||'Unnamed segment';
   document.getElementById('errorBar').classList.remove('visible');
   document.getElementById('statusBar').classList.add('visible');
-  document.getElementById('buildBtn').disabled = true;
-
+  document.getElementById('buildBtn').disabled=true;
   try {
-    const res = await fetch(`${API}/segments/query`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(criteria)
-    });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'Query failed'); }
+    const res = await fetch(`${API}/segments/query`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(criteria)});
+    if(!res.ok){const e=await res.json();throw new Error(e.detail||'Query failed');}
     const data = await res.json();
     document.getElementById('statusBar').classList.remove('visible');
-    if (data.total_matched === 0) {
-      document.getElementById('results').innerHTML = `<div class="empty-state">No personas matched your criteria.<br><br>Try broadening your filters — remove education or use fewer keywords.</div>`;
+    if(data.total_matched===0){
+      document.getElementById('results').innerHTML=`<div class="empty-state">No personas matched your criteria.<br><br>Try broadening your filters — fewer states, no education filter, or simpler keywords.</div>`;
     } else {
-      renderResults(data, name, criteria);
+      renderResults(data,name,criteria);
     }
   } catch(e) {
     document.getElementById('statusBar').classList.remove('visible');
-    document.getElementById('errorBar').textContent = 'Error: ' + e.message;
+    document.getElementById('errorBar').textContent='Error: '+e.message;
     document.getElementById('errorBar').classList.add('visible');
   }
-  document.getElementById('buildBtn').disabled = false;
+  document.getElementById('buildBtn').disabled=false;
 }
 
+initStates();
 renderSavedChips();
 </script>
 </body>

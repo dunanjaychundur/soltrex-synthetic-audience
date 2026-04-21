@@ -55,17 +55,35 @@ def refresh_news_for_all_clusters():
     cur.close(); conn.close()
     return {"inserted_memories": inserted, "date": today}
 
-def get_cluster_news_context(cluster_id, limit=6):
+def get_cluster_news_context(cluster_id, limit=8):
     conn = get_conn()
     cur  = conn.cursor()
+    # Get recent news memories
     cur.execute("""
-        SELECT memory_text FROM persona_memories
-        WHERE cluster_id = %s
+        SELECT memory_text, topic FROM persona_memories
+        WHERE cluster_id = %s AND topic != 'video_reaction'
         ORDER BY created_at DESC
         LIMIT %s
     """, (cluster_id, limit))
-    rows = cur.fetchall()
+    news_rows = cur.fetchall()
+
+    # Get prior video reaction memories (channel history)
+    cur.execute("""
+        SELECT memory_text FROM persona_memories
+        WHERE cluster_id = %s AND topic = 'video_reaction'
+        ORDER BY created_at DESC
+        LIMIT 5
+    """, (cluster_id,))
+    reaction_rows = cur.fetchall()
     cur.close(); conn.close()
-    if not rows:
-        return "No recent news context available for this segment."
-    return "\n".join(f"- {r['memory_text']}" for r in rows)
+
+    parts = []
+    if news_rows:
+        parts.append("Recent news this segment has been exposed to:")
+        parts.extend(f"- {r['memory_text']}" for r in news_rows)
+    if reaction_rows:
+        parts.append("\nThis segment's prior video reactions:")
+        parts.extend(f"- {r['memory_text']}" for r in reaction_rows)
+
+    return "\n".join(parts) if parts else "No context available for this segment."
+

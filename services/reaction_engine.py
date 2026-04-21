@@ -9,11 +9,24 @@ from services.db import get_conn
 client = anthropic.Anthropic()
 COLORS = ["#5856D6","#34C759","#FF9500","#FF3B30","#AF52DE","#00C7BE","#FF2D55","#0A84FF"]
 
-def _call_claude(prompt):
+def _call_claude(prompt, frames_b64=None):
+    """Call Claude with optional vision frames."""
+    if frames_b64:
+        # Build multimodal message with frames + text
+        content = []
+        for i, b64 in enumerate(frames_b64[:6]):
+            content.append({
+                "type": "image",
+                "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}
+            })
+        content.append({"type": "text", "text": f"Above are {len(frames_b64[:6])} frames sampled from the video.\n\n{prompt}"})
+    else:
+        content = prompt
+
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": content}]
     )
     raw = re.sub(r"```json|```", "", response.content[0].text.strip()).strip()
     try:
@@ -29,8 +42,10 @@ def _call_claude(prompt):
 
 def generate_cluster_reaction(cluster_id, video_data):
     cluster    = CLUSTERS[cluster_id]
+    frames_b64 = video_data.get("frames_b64") or []
     transcript = (video_data.get("transcript") or "")[:1500] or (video_data.get("description") or "")[:500]
-    prompt = f"""You are simulating how a real person from this demographic reacts to a YouTube video.
+    has_vision = len(frames_b64) > 0
+    prompt = f"""You are simulating how a real person from this demographic reacts to {"a video — you can see frames from it above" if has_vision else "a YouTube video"}.
 
 PERSONA SEGMENT: {cluster['label']}
 Profile: {cluster['description']}
@@ -64,13 +79,14 @@ Respond ONLY with a JSON object — no preamble, no markdown:
   "purchase_or_action_intent": "<would this video move them to act — buy, visit, follow, try? Why or why not? Be honest if the answer is no.>",
   "authenticity_read": "<did this feel genuine or produced? What specific signals gave that impression to this audience?>"
 }}"""
-    result = _call_claude(prompt)
+    result = _call_claude(prompt, frames_b64=frames_b64 if frames_b64 else None)
     result["cluster_id"]    = cluster_id
     result["cluster_label"] = cluster["label"]
     result["cluster_color"] = cluster["color"]
     return result
 
 def generate_nemotron_segment_reaction(segment_name, personas, video_data, color):
+    frames_b64 = video_data.get("frames_b64") or []
     sample = random.sample(personas, min(5, len(personas)))
     persona_summaries = "\n".join([
         f"- {p.get('occupation','Unknown')}, {p.get('age','?')}yo {p.get('sex','')} from {p.get('state','')}, "
@@ -113,7 +129,7 @@ Respond ONLY with a JSON object — no preamble, no markdown:
   "purchase_or_action_intent": "<would this move them to act? Be specific about which individuals might and which wouldn't.>",
   "authenticity_read": "<did this feel real or polished to this group? What signals did they pick up on?>"
 }}"""
-    result = _call_claude(prompt)
+    result = _call_claude(prompt, frames_b64=frames_b64 if frames_b64 else None)
     result["cluster_id"]    = f"nemotron_{segment_name.lower().replace(' ','_')}"
     result["cluster_label"] = segment_name
     result["cluster_color"] = color

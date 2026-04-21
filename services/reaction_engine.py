@@ -189,7 +189,10 @@ def run_nemotron_analysis(video_data, nemotron_segments):
             # Fetch matching personas from database using segment criteria
             personas = fetch_nemotron_personas(seg, sample_size=10)
             if not personas:
-                print(f"No personas matched for segment: {name}")
+                print(f"No personas matched for segment: {name} — retrying with age only")
+                personas = fetch_nemotron_personas({"age_min": seg.get("age_min",18), "age_max": seg.get("age_max",99)}, sample_size=10)
+            if not personas:
+                print(f"Still no personas for {name} — skipping")
                 continue
             reactions.append(generate_nemotron_segment_reaction(
                 name, personas, video_data, COLORS[i % len(COLORS)]
@@ -200,7 +203,9 @@ def run_nemotron_analysis(video_data, nemotron_segments):
     return {"video":_video_meta(video_data),"summary":_aggregate(reactions),"segment_reactions":reactions,"mode":"nemotron"}
 
 def fetch_nemotron_personas(segment_criteria, sample_size=10):
-    """Query Nemotron personas matching segment criteria."""
+    """Query Nemotron personas matching segment criteria.
+    Handles both single values and arrays for state/education fields.
+    """
     conn = get_conn()
     cur  = conn.cursor()
 
@@ -214,17 +219,23 @@ def fetch_nemotron_personas(segment_criteria, sample_size=10):
         conditions.append("LOWER(sex) = LOWER(%s)")
         params.append(segment_criteria["sex"])
 
-    if segment_criteria.get("state"):
-        conditions.append("LOWER(state) = LOWER(%s)")
-        params.append(segment_criteria["state"])
+    # Handle both "state" (single) and "states" (array)
+    states = segment_criteria.get("states") or []
+    if not states and segment_criteria.get("state"):
+        states = [segment_criteria["state"]]
+    if states:
+        placeholders = ",".join(["%s"] * len(states))
+        conditions.append(f"state IN ({placeholders})")
+        params.extend(states)
 
-    if segment_criteria.get("education"):
-        conditions.append("LOWER(education) ILIKE %s")
-        params.append(f"%{segment_criteria['education'].lower()}%")
-
-    if segment_criteria.get("income_level"):
-        conditions.append("LOWER(income_level) ILIKE %s")
-        params.append(f"%{segment_criteria['income_level'].lower()}%")
+    # Handle both "education" (single) and "educations" (array)
+    educations = segment_criteria.get("educations") or []
+    if not educations and segment_criteria.get("education"):
+        educations = [segment_criteria["education"]]
+    if educations:
+        placeholders = ",".join(["%s"] * len(educations))
+        conditions.append(f"education IN ({placeholders})")
+        params.extend(educations)
 
     if segment_criteria.get("occupation_keywords"):
         keywords = [k.strip() for k in segment_criteria["occupation_keywords"].split(",")]
@@ -234,15 +245,18 @@ def fetch_nemotron_personas(segment_criteria, sample_size=10):
 
     if segment_criteria.get("interest_keywords"):
         keywords = [k.strip() for k in segment_criteria["interest_keywords"].split(",")]
-        ints = " OR ".join(["LOWER(hobbies_and_interests) ILIKE %s"] * len(keywords))
+        ints = " OR ".join([
+            "(LOWER(hobbies_and_interests) ILIKE %s OR LOWER(persona) ILIKE %s)"
+        ] * len(keywords))
         conditions.append(f"({ints})")
-        params.extend([f"%{k.lower()}%" for k in keywords])
-
-    if segment_criteria.get("political_affiliation"):
-        conditions.append("LOWER(political_affiliation) ILIKE %s")
-        params.append(f"%{segment_criteria['political_affiliation'].lower()}%")
+        for k in keywords:
+            params.extend([f"%{k.lower()}%", f"%{k.lower()}%"])
 
     where = " AND ".join(conditions)
+
+    # Log what we're querying to help debug
+    print(f"Nemotron query: states={states} educations={educations} where={where[:100]}")
+
     cur.execute(f"""
         SELECT age, sex, state, city, education, occupation,
                income_level, political_affiliation,
@@ -254,6 +268,7 @@ def fetch_nemotron_personas(segment_criteria, sample_size=10):
     """, params + [sample_size])
 
     rows = [dict(r) for r in cur.fetchall()]
+    print(f"Nemotron fetch returned {len(rows)} personas")
     cur.close(); conn.close()
     return rows
 

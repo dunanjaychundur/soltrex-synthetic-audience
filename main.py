@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from routers import personas, news, analyze
+from routers import personas, news, analyze, segments
 from services.db import setup_schema
 from services.persona_store import seed_personas_if_empty
 import os
@@ -16,9 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(personas.router, prefix="/personas", tags=["personas"])
-app.include_router(news.router,     prefix="/news",     tags=["news"])
-app.include_router(analyze.router,  prefix="/analyze",  tags=["analyze"])
+app.include_router(personas.router,  prefix="/personas",  tags=["personas"])
+app.include_router(news.router,      prefix="/news",       tags=["news"])
+app.include_router(analyze.router,   prefix="/analyze",    tags=["analyze"])
+app.include_router(segments.router,  prefix="/segments",   tags=["segments"])
 
 @app.on_event("startup")
 def on_startup():
@@ -39,6 +40,9 @@ def health():
 def serve_frontend():
     return FileResponse("frontend/index.html")
 
-# Serve frontend static files
+@app.get("/segments-ui")
+def serve_segments():
+    return FileResponse("frontend/segments.html")
+
 if os.path.exists("frontend"):
     app.mount("/static", StaticFiles(directory="frontend"), name="static")

@@ -2,12 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from routers import personas, news, analyze, segments, upload
+from routers import personas, news, analyze, segments, upload, search_ad
 from services.db import setup_schema
 from services.persona_store import seed_personas_if_empty
 import os
 
-app = FastAPI(title="Soltrex Synthetic Audience API")
+app = FastAPI(title="Hatch Audience Intelligence API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,11 +16,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(personas.router, prefix="/personas", tags=["personas"])
-app.include_router(news.router,     prefix="/news",     tags=["news"])
-app.include_router(analyze.router,  prefix="/analyze",  tags=["analyze"])
-app.include_router(segments.router, prefix="/segments", tags=["segments"])
-app.include_router(upload.router,   prefix="/upload",   tags=["upload"])
+app.include_router(personas.router,  prefix="/personas",   tags=["personas"])
+app.include_router(news.router,      prefix="/news",        tags=["news"])
+app.include_router(analyze.router,   prefix="/analyze",     tags=["analyze"])
+app.include_router(segments.router,  prefix="/segments",    tags=["segments"])
+app.include_router(upload.router,    prefix="/upload",      tags=["upload"])
+app.include_router(search_ad.router, prefix="/search-ad",   tags=["search_ad"])
 
 @app.on_event("startup")
 def on_startup():
@@ -44,6 +45,10 @@ def serve_frontend():
 @app.get("/segments-ui")
 def serve_segments():
     return FileResponse("frontend/segments.html")
+
+@app.get("/search-ad-ui")
+def serve_search_ad():
+    return FileResponse("frontend/search_ad.html")
 
 if os.path.exists("frontend"):
     app.mount("/static", StaticFiles(directory="frontend"), name="static")

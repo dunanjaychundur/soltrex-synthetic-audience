@@ -11,17 +11,21 @@ COLORS = ["#5856D6","#34C759","#FF9500","#FF3B30","#AF52DE","#00C7BE","#FF2D55",
 
 def _call_claude(prompt, frames_b64=None):
     """Call Claude with optional vision frames."""
-    if frames_b64:
+    print(f"_call_claude: frames={len(frames_b64) if frames_b64 else 0}")
+    if frames_b64 and len(frames_b64) > 0:
         # Build multimodal message with frames + text
         content = []
-        for i, b64 in enumerate(frames_b64[:6]):
-            content.append({
-                "type": "image",
-                "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}
-            })
-        content.append({"type": "text", "text": f"Above are {len(frames_b64[:6])} frames sampled from the video.\n\n{prompt}"})
+        for b64 in frames_b64[:6]:
+            if b64 and len(b64) > 100:  # sanity check — non-empty base64
+                content.append({
+                    "type": "image",
+                    "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}
+                })
+        content.append({"type": "text", "text": f"Above are {len(content)} frames sampled from the video at regular intervals. React to what you actually see in these frames alongside the transcript.\n\n{prompt}"})
+        print(f"_call_claude: sending {len(content)-1} images to Claude")
     else:
         content = prompt
+        print("_call_claude: no frames — text only")
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Ad Scorer — HATCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #EE205D;
+    --pink-alt: #EA1F5A;
+    --pink-light: #F68AA9;
+    --black: #161616;
+    --white: #FFFFFF;
+    --amber: #FBAE40;
+    --border: #2a2a2a;
+    --muted: #666;
+    --surface: #1e1e1e;
+    --green: #077F40;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Lato', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
+
+  header {
+    background: var(--black);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2.5rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); display: flex; align-items: center; gap: 10px; }
+  .logo-dot { color: var(--pink); }
+  .badge { background: var(--pink); color: var(--white); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 3px; }
+  .nav-links { display: flex; gap: 20px; align-items: center; }
+  .nav-links a { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--white); }
+
+  .hero { padding: 3.5rem 2.5rem 3rem; border-bottom: 1px solid var(--border); }
+  .hero-tag { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--pink); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+  .hero-tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--pink); }
+  .hero h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.95; margin-bottom: 1.5rem; }
+  .hero h1 .pink { color: var(--pink); }
+  .hero h1 .light { font-weight: 400; font-style: italic; text-transform: none; font-size: 0.55em; color: var(--muted); }
+  .hero p { font-size: 15px; color: var(--muted); max-width: 520px; line-height: 1.7; }
+
+  main { max-width: 1280px; margin: 0 auto; padding: 2.5rem; display: grid; grid-template-columns: 400px 1fr; gap: 24px; align-items: start; }
+
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.75rem; position: sticky; top: 80px; }
+  .card-title { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); margin-bottom: 1.5rem; }
+
+  .section-divider {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #444;
+    margin: 1.25rem 0 1rem;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .field { margin-bottom: 1rem; }
+  .field label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+  .field label span { font-size: 9px; color: #444; font-weight: 400; letter-spacing: 0.04em; text-transform: none; }
+
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: var(--black);
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    color: var(--white);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input { height: 40px; }
+  .field textarea { resize: none; line-height: 1.5; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--pink); }
+  .field input::placeholder, .field textarea::placeholder { color: #444; }
+  .field select option { background: var(--black); }
+
+  .char-count { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: #444; text-align: right; margin-top: 3px; letter-spacing: 0.04em; }
+  .char-count.over { color: var(--pink); }
+
+  /* Ad preview */
+  .ad-preview {
+    background: var(--black);
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 14px;
+    margin-bottom: 1.25rem;
+  }
+  .ad-preview-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; margin-bottom: 8px; }
+  .ad-preview-url { font-size: 12px; color: #4ade80; margin-bottom: 3px; font-family: 'Lato', sans-serif; }
+  .ad-preview-headlines { font-size: 14px; color: #60a5fa; margin-bottom: 4px; font-family: 'Lato', sans-serif; line-height: 1.4; }
+  .ad-preview-desc { font-size: 12px; color: #aaa; font-family: 'Lato', sans-serif; line-height: 1.5; }
+  .ad-label-badge { display: inline-block; font-family: 'Montserrat', sans-serif; font-size: 8px; font-weight: 700; padding: 1px 5px; border: 1px solid #555; color: #777; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  .mode-row { margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .mode-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; }
+  .mode-toggle { display: flex; background: var(--black); border: 1px solid #333; border-radius: 4px; overflow: hidden; }
+  .mode-btn { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 14px; background: none; border: none; color: #555; cursor: pointer; transition: all 0.15s; }
+  .mode-btn.active { background: var(--pink); color: var(--white); }
+
+  .chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 3px; border: 1px solid #333; background: transparent; color: #555; cursor: pointer; transition: all 0.15s; }
+  .chip.active { background: var(--white); color: var(--black); border-color: var(--white); }
+  .chip.nemotron-chip.active { background: var(--pink); color: var(--white); border-color: var(--pink); }
+
+  .score-btn { width: 100%; height: 44px; background: var(--pink); color: var(--white); border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-top: 1rem; transition: background 0.15s; }
+  .score-btn:hover { background: var(--pink-alt); }
+  .score-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: var(--black); border: 1px solid var(--border); border-radius: 4px; margin-top: 1rem; font-size: 13px; color: var(--muted); }
+  .status-bar.visible { display: flex; }
+  .spinner { width: 14px; height: 14px; border: 2px solid #333; border-top-color: var(--pink); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-bar { display: none; padding: 10px 14px; background: rgba(238,32,93,0.1); border: 1px solid rgba(238,32,93,0.3); border-radius: 4px; margin-top: 1rem; font-size: 13px; color: var(--pink-light); }
+  .error-bar.visible { display: block; }
+
+  /* RESULTS */
+  .results { display: none; }
+  .results.visible { display: block; }
+
+  .empty-state { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4rem 2rem; text-align: center; color: #444; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* Summary */
+  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 1.5rem; }
+  .summary-card { background: var(--surface); padding: 1.5rem; }
+  .summary-card .metric { font-family: 'Montserrat', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--pink); letter-spacing: -0.02em; line-height: 1; margin-bottom: 4px; }
+  .summary-card .metric.positive { color: #4ade80; }
+  .summary-card .metric.negative { color: var(--pink); }
+  .summary-card .metric-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; }
+  .summary-card .metric-sub { font-size: 11px; color: #555; margin-top: 3px; }
+
+  /* Quality bar */
+  .quality-section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .quality-title { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px; }
+  .quality-title::before { content: ''; display: block; width: 16px; height: 1px; background: var(--pink); }
+
+  .quality-bars { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px 24px; }
+  .q-bar-row { display: flex; align-items: center; gap: 10px; }
+  .q-bar-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #555; width: 130px; flex-shrink: 0; }
+  .q-bar-track { flex: 1; height: 6px; background: #2a2a2a; border-radius: 3px; overflow: hidden; }
+  .q-bar-fill { height: 100%; border-radius: 3px; background: var(--pink); transition: width 0.8s ease; }
+  .q-bar-val { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: var(--white); width: 28px; text-align: right; flex-shrink: 0; }
+
+  /* Segment scores */
+  .segments-heading { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--pink); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+  .segments-heading::before { content: ''; display: block; width: 16px; height: 1px; background: var(--pink); }
+
+  .seg-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+
+  .seg-card { background: var(--surface); padding: 1.5rem; position: relative; overflow: hidden; }
+  .seg-accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
+
+  .seg-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; padding-left: 14px; }
+  .seg-name { font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+  .seg-count { font-size: 11px; color: #555; }
+
+  .emotion-badge { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 3px; flex-shrink: 0; }
+  .emotion-positive  { background: rgba(7,127,64,0.2);   color: #4ade80; }
+  .emotion-neutral   { background: rgba(255,255,255,0.08); color: #777; }
+  .emotion-negative  { background: rgba(238,32,93,0.2);   color: var(--pink-light); }
+  .emotion-suspicious{ background: rgba(251,174,64,0.15); color: var(--amber); }
+
+  .score-bars { padding-left: 14px; margin-bottom: 1.25rem; }
+  .s-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .s-bar-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #444; width: 90px; flex-shrink: 0; }
+  .s-bar-track { flex: 1; height: 3px; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
+  .s-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+  .s-bar-val { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: #666; width: 28px; text-align: right; flex-shrink: 0; }
+
+  .ctr-block { padding-left: 14px; margin-bottom: 1.25rem; display: flex; align-items: baseline; gap: 8px; }
+  .ctr-val { font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 900; color: var(--pink); }
+  .ctr-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #444; }
+  .ctr-vs { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; margin-left: 4px; }
+  .ctr-vs.up { color: #4ade80; }
+  .ctr-vs.down { color: var(--pink); }
+
+  .feedback-rows { padding-left: 14px; }
+  .feedback-row { font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #222; }
+  .feedback-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .feedback-row strong { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; display: block; margin-bottom: 3px; }
+
+  .click-pill { display: inline-flex; align-items: center; gap: 5px; font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 3px; margin: 10px 0 0 14px; }
+  .click-pill.yes { background: rgba(7,127,64,0.2); color: #4ade80; }
+  .click-pill.no  { background: rgba(238,32,93,0.15); color: var(--pink-light); }
+
+  @media (max-width: 960px) {
+    main { grid-template-columns: 1fr; }
+    .form-card { position: static; }
+    .summary-grid { grid-template-columns: repeat(2,1fr); }
+    .seg-grid { grid-template-columns: 1fr; }
+    .quality-bars { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">HATCH<span class="logo-dot">.</span><span class="badge">Audience Intelligence</span></div>
+  <div class="nav-links">
+    <a href="/">Analyzer</a>
+    <a href="/segments-ui">Segments</a>
+    <a href="/search-ad-ui">Search Ads</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Paid Search</div>
+  <h1>SEARCH AD<br><span class="pink">SCORER</span> <span class="light">creative + performance</span></h1>
+  <p>Enter your search ad copy and target keyword. We score the creative quality and estimate CTR and clicks per audience segment.</p>
+</div>
+
+<main>
+  <div class="form-card">
+    <div class="card-title">Ad Copy</div>
+
+    <!-- Live Preview -->
+    <div class="ad-preview" id="adPreview">
+      <div class="ad-preview-label">Live Preview</div>
+      <div class="ad-preview-url" id="previewUrl">www.example.com</div>
+      <div class="ad-preview-headlines" id="previewHeadlines"><span class="ad-label-badge">Ad</span>Headline 1 | Headline 2 | Headline 3</div>
+      <div class="ad-preview-desc" id="previewDesc">Your description will appear here...</div>
+    </div>
+
+    <div class="field">
+      <label>Headline 1 <span id="h1Count">0/30</span></label>
+      <input type="text" id="h1" placeholder="Best Running Shoes 2024" maxlength="30" oninput="updatePreview();countChars('h1','h1Count',30)" />
+    </div>
+    <div class="field">
+      <label>Headline 2 <span id="h2Count">0/30</span></label>
+      <input type="text" id="h2" placeholder="Free Shipping On Orders $50+" maxlength="30" oninput="updatePreview();countChars('h2','h2Count',30)" />
+    </div>
+    <div class="field">
+      <label>Headline 3 <span id="h3Count">0/30</span></label>
+      <input type="text" id="h3" placeholder="Shop Now & Save 20%" maxlength="30" oninput="updatePreview();countChars('h3','h3Count',30)" />
+    </div>
+
+    <div class="field">
+      <label>Description 1 <span id="d1Count">0/90</span></label>
+      <textarea id="d1" placeholder="Award-winning running shoes for every pace. Breathable mesh, responsive cushioning, and a fit that feels custom." rows="2" maxlength="90" oninput="updatePreview();countChars('d1','d1Count',90)"></textarea>
+    </div>
+    <div class="field">
+      <label>Description 2 <span id="d2Count">0/90</span></label>
+      <textarea id="d2" placeholder="Browse 200+ styles. Free returns. Join 2M+ runners who trust us." rows="2" maxlength="90" oninput="updatePreview();countChars('d2','d2Count',90)"></textarea>
+    </div>
+    <div class="field">
+      <label>Display URL</label>
+      <input type="text" id="displayUrl" placeholder="www.brandname.com/running-shoes" oninput="updatePreview()" />
+    </div>
+
+    <div class="section-divider">Targeting</div>
+
+    <div class="field">
+      <label>Target Keyword</label>
+      <input type="text" id="keyword" placeholder="e.g. best running shoes for men" />
+    </div>
+    <div class="field">
+      <label>Industry</label>
+      <select id="industry">
+        <option value="default">General / Other</option>
+        <option value="ecommerce">E-commerce / Retail</option>
+        <option value="food_beverage">Food & Beverage</option>
+        <option value="health">Health & Wellness</option>
+        <option value="finance">Finance</option>
+        <option value="technology">Technology / SaaS</option>
+        <option value="travel">Travel</option>
+        <option value="automotive">Automotive</option>
+        <option value="real_estate">Real Estate</option>
+        <option value="entertainment">Entertainment</option>
+        <option value="b2b">B2B</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Monthly Impressions <span>For click estimates</span></label>
+      <input type="number" id="impressions" value="10000" min="100" />
+    </div>
+
+    <div class="section-divider">Audience</div>
+
+    <div class="mode-row">
+      <span class="mode-label">Mode</span>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeDefault" onclick="setMode('clusters')">Default</button>
+        <button class="mode-btn" id="modeNemotron" onclick="setMode('nemotron')">My Segments</button>
+      </div>
+    </div>
+
+    <div id="clusterChipsRow" class="chips-row"></div>
+    <div id="nemotronChipsRow" class="chips-row" style="display:none"></div>
+
+    <button class="score-btn" id="scoreBtn" onclick="scoreAd()">Score Ad</button>
+
+    <div class="status-bar" id="statusBar">
+      <div class="spinner"></div>
+      <span id="statusText">Scoring creative quality...</span>
+    </div>
+    <div class="error-bar" id="errorBar"></div>
+  </div>
+
+  <div id="resultsPanel">
+    <div class="empty-state">Enter your ad copy and click Score Ad to evaluate creative quality and estimate performance.</div>
+  </div>
+</main>
+
+<script>
+const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+
+const CLUSTERS = {
+  nyc_tech_worker:      { label: 'NYC Tech Worker',     color: '#5856D6' },
+  suburban_parent:      { label: 'Suburban Parent',      color: '#34C759' },
+  college_student:      { label: 'College Student',      color: '#FF9500' },
+  midwest_tradesperson: { label: 'Midwest Tradesperson', color: '#FF3B30' },
+  coastal_creative:     { label: 'Coastal Creative',     color: '#AF52DE' },
+  video_game_enthusiast:{ label: 'Gamer',                color: '#00C7BE' }
+};
+
+let selectedClusters = new Set(Object.keys(CLUSTERS));
+let selectedNemotron = new Set();
+let savedSegments    = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
+let currentMode      = 'clusters';
+
+function initChips() {
+  const row = document.getElementById('clusterChipsRow');
+  row.innerHTML = '';
+  for (const [id, info] of Object.entries(CLUSTERS)) {
+    const c = document.createElement('button');
+    c.className = 'chip active';
+    c.textContent = info.label;
+    c.onclick = () => toggleCluster(id, c);
+    row.appendChild(c);
+  }
+  renderNemotronChips();
+}
+
+function renderNemotronChips() {
+  const row = document.getElementById('nemotronChipsRow');
+  if (!savedSegments.length) {
+    row.innerHTML = '<span style="font-family:Montserrat,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#444">No saved segments — <a href="/segments-ui" style="color:var(--pink);text-decoration:none">build one</a></span>';
+    return;
+  }
+  row.innerHTML = savedSegments.map((s, i) =>
+    `<button class="chip nemotron-chip" onclick="toggleNemotron(${i}, this)">${s.name}</button>`
+  ).join('');
+}
+
+function toggleCluster(id, el) {
+  if (selectedClusters.has(id)) { if (selectedClusters.size === 1) return; selectedClusters.delete(id); el.classList.remove('active'); }
+  else { selectedClusters.add(id); el.classList.add('active'); }
+}
+
+function toggleNemotron(i, el) {
+  if (selectedNemotron.has(i)) { selectedNemotron.delete(i); el.classList.remove('active'); }
+  else { selectedNemotron.add(i); el.classList.add('active'); }
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeDefault').classList.toggle('active', mode === 'clusters');
+  document.getElementById('modeNemotron').classList.toggle('active', mode === 'nemotron');
+  document.getElementById('clusterChipsRow').style.display  = mode === 'clusters'  ? 'flex' : 'none';
+  document.getElementById('nemotronChipsRow').style.display = mode === 'nemotron'  ? 'flex' : 'none';
+}
+
+function countChars(inputId, countId, max) {
+  const len = document.getElementById(inputId).value.length;
+  const el  = document.getElementById(countId);
+  el.textContent = `${len}/${max}`;
+  el.className   = len > max * 0.9 ? 'over' : '';
+}
+
+function updatePreview() {
+  const h1 = document.getElementById('h1').value;
+  const h2 = document.getElementById('h2').value;
+  const h3 = document.getElementById('h3').value;
+  const d1 = document.getElementById('d1').value;
+  const d2 = document.getElementById('d2').value;
+  const url = document.getElementById('displayUrl').value;
+
+  const headlines = [h1, h2, h3].filter(Boolean).join(' | ') || 'Headline 1 | Headline 2 | Headline 3';
+  document.getElementById('previewUrl').textContent     = url || 'www.example.com';
+  document.getElementById('previewHeadlines').innerHTML = `<span class="ad-label-badge">Ad</span>${headlines}`;
+  document.getElementById('previewDesc').textContent    = [d1, d2].filter(Boolean).join(' ') || 'Your description will appear here...';
+}
+
+function setStatus(msg) { document.getElementById('statusBar').classList.add('visible'); document.getElementById('statusText').textContent = msg; }
+function hideStatus()   { document.getElementById('statusBar').classList.remove('visible'); }
+function showError(msg) { document.getElementById('errorBar').textContent = msg; document.getElementById('errorBar').classList.add('visible'); }
+function hideError()    { document.getElementById('errorBar').classList.remove('visible'); }
+
+function emotionClass(e) {
+  const map = { positive: 'positive', neutral: 'neutral', negative: 'negative', suspicious: 'suspicious' };
+  return 'emotion-' + (map[e] || 'neutral');
+}
+
+function ctrDelta(predicted, benchmark) {
+  const d = (predicted - benchmark).toFixed(2);
+  if (d > 0) return `<span class="ctr-vs up">↑ +${d}% vs benchmark</span>`;
+  if (d < 0) return `<span class="ctr-vs down">↓ ${d}% vs benchmark</span>`;
+  return `<span class="ctr-vs">= benchmark</span>`;
+}
+
+function avgScore(scores) {
+  const vals = Object.values(scores).filter(v => typeof v === 'number');
+  return vals.length ? (vals.reduce((a,b) => a+b,0) / vals.length).toFixed(1) : '—';
+}
+
+function renderResults(data) {
+  const summary  = data.summary || {};
+  const segments = data.segment_scores || [];
+  const ad       = data.ad || {};
+
+  // Aggregate creative scores across segments
+  const allScores = segments.map(s => s.creative_scores || {});
+  const avgScores = {};
+  ['relevance','headline_strength','description_quality','url_clarity','overall_quality'].forEach(k => {
+    const vals = allScores.map(s => s[k]).filter(v => typeof v === 'number');
+    avgScores[k] = vals.length ? (vals.reduce((a,b) => a+b,0)/vals.length).toFixed(1) : '—';
+  });
+
+  const ctrDiff    = summary.ctr_vs_benchmark;
+  const ctrClass   = ctrDiff > 0 ? 'positive' : 'negative';
+  const ctrSign    = ctrDiff > 0 ? '+' : '';
+
+  const segCards = segments.map(r => {
+    const cs   = r.creative_scores || {};
+    const ar   = r.audience_reaction || {};
+    const pe   = r.performance_estimate || {};
+    const cf   = r.creative_feedback || {};
+    const diff = (pe.predicted_ctr - r.benchmark_ctr).toFixed(2);
+    const diffClass = diff > 0 ? 'up' : 'down';
+    const diffSign  = diff > 0 ? '+' : '';
+
+    return `
+    <div class="seg-card">
+      <div class="seg-accent" style="background:${r.cluster_color}"></div>
+      <div class="seg-header">
+        <div>
+          <div class="seg-name">${r.cluster_label}</div>
+          ${r.persona_count ? `<div class="seg-count">${r.persona_count} personas</div>` : ''}
+        </div>
+        <span class="emotion-badge ${emotionClass(ar.emotional_response)}">${ar.emotional_response || 'neutral'}</span>
+      </div>
+
+      <div class="ctr-block">
+        <span class="ctr-val">${pe.predicted_ctr}%</span>
+        <span class="ctr-label">Predicted CTR</span>
+        <span class="ctr-vs ${diffClass}">${diffSign}${diff}% vs benchmark</span>
+      </div>
+
+      <div class="score-bars">
+        <div class="s-bar-row">
+          <span class="s-bar-label">Creative</span>
+          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(cs.overall_quality||0)*10}%;background:${r.cluster_color}"></div></div>
+          <span class="s-bar-val">${cs.overall_quality||'—'}/10</span>
+        </div>
+        <div class="s-bar-row">
+          <span class="s-bar-label">Relevance</span>
+          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(ar.relevance_to_segment||0)*10}%;background:${r.cluster_color}"></div></div>
+          <span class="s-bar-val">${ar.relevance_to_segment||'—'}/10</span>
+        </div>
+        <div class="s-bar-row">
+          <span class="s-bar-label">Trust</span>
+          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(ar.trust_score||0)*10}%;background:${r.cluster_color}"></div></div>
+          <span class="s-bar-val">${ar.trust_score||'—'}/10</span>
+        </div>
+        <div class="s-bar-row">
+          <span class="s-bar-label">Click Likelihood</span>
+          <div class="s-bar-track"><div class="s-bar-fill" style="width:${ar.click_likelihood||0}%;background:${r.cluster_color}"></div></div>
+          <span class="s-bar-val">${ar.click_likelihood||'—'}%</span>
+        </div>
+      </div>
+
+      <div class="feedback-rows">
+        ${ar.click_reason  ? `<div class="feedback-row"><strong>Click Reasoning</strong>${ar.click_reason}</div>` : ''}
+        ${ar.objection     ? `<div class="feedback-row"><strong>Objection</strong>${ar.objection}</div>` : ''}
+        ${cf.strongest_element ? `<div class="feedback-row"><strong>Creative Strength</strong>${cf.strongest_element}</div>` : ''}
+        ${cf.weakest_element   ? `<div class="feedback-row"><strong>Creative Weakness</strong>${cf.weakest_element}</div>` : ''}
+        ${cf.improvement_suggestion ? `<div class="feedback-row"><strong>Suggested Rewrite</strong>${cf.improvement_suggestion}</div>` : ''}
+      </div>
+
+      <div class="click-pill ${ar.would_click ? 'yes' : 'no'}">${ar.would_click ? '✓ Would Click' : '✗ Would Not Click'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('resultsPanel').innerHTML = `
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="metric">${summary.avg_predicted_ctr}%</div>
+        <div class="metric-label">Predicted CTR</div>
+        <div class="metric-sub">Benchmark: ${summary.benchmark_ctr}%</div>
+      </div>
+      <div class="summary-card">
+        <div class="metric ${ctrClass}">${ctrSign}${ctrDiff}%</div>
+        <div class="metric-label">vs Benchmark</div>
+        <div class="metric-sub">${ctrDiff > 0 ? 'Above average' : ctrDiff < 0 ? 'Below average' : 'On benchmark'}</div>
+      </div>
+      <div class="summary-card">
+        <div class="metric">${(summary.estimated_monthly_clicks||0).toLocaleString()}</div>
+        <div class="metric-label">Est. Monthly Clicks</div>
+        <div class="metric-sub">${(summary.monthly_impressions||0).toLocaleString()} impressions</div>
+      </div>
+      <div class="summary-card">
+        <div class="metric">${avgScores.overall_quality}</div>
+        <div class="metric-label">Creative Score</div>
+        <div class="metric-sub">Out of 10</div>
+      </div>
+    </div>
+
+    <div class="quality-section">
+      <div class="quality-title">Creative Quality Breakdown</div>
+      <div class="quality-bars">
+        <div class="q-bar-row">
+          <span class="q-bar-label">Keyword Relevance</span>
+          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.relevance||0)*10}%"></div></div>
+          <span class="q-bar-val">${avgScores.relevance}</span>
+        </div>
+        <div class="q-bar-row">
+          <span class="q-bar-label">Headline Strength</span>
+          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.headline_strength||0)*10}%"></div></div>
+          <span class="q-bar-val">${avgScores.headline_strength}</span>
+        </div>
+        <div class="q-bar-row">
+          <span class="q-bar-label">Description Quality</span>
+          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.description_quality||0)*10}%"></div></div>
+          <span class="q-bar-val">${avgScores.description_quality}</span>
+        </div>
+        <div class="q-bar-row">
+          <span class="q-bar-label">URL Clarity</span>
+          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.url_clarity||0)*10}%"></div></div>
+          <span class="q-bar-val">${avgScores.url_clarity}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="segments-heading">Segment Scores</div>
+    <div class="seg-grid">${segCards}</div>`;
+
+  document.getElementById('resultsPanel').classList.add('visible');
+}
+
+async function scoreAd() {
+  const h1 = document.getElementById('h1').value.trim();
+  const d1 = document.getElementById('d1').value.trim();
+  const kw = document.getElementById('keyword').value.trim();
+
+  if (!h1) { showError('Headline 1 is required.'); return; }
+  if (!d1) { showError('Description 1 is required.'); return; }
+  if (!kw) { showError('Target keyword is required.'); return; }
+
+  hideError();
+  document.getElementById('scoreBtn').disabled = true;
+  setStatus('Scoring creative quality and estimating performance...');
+
+  const body = {
+    headline_1:          h1,
+    headline_2:          document.getElementById('h2').value,
+    headline_3:          document.getElementById('h3').value,
+    description_1:       d1,
+    description_2:       document.getElementById('d2').value,
+    display_url:         document.getElementById('displayUrl').value,
+    target_keyword:      kw,
+    industry:            document.getElementById('industry').value,
+    monthly_impressions: parseInt(document.getElementById('impressions').value) || 10000,
+  };
+
+  if (currentMode === 'nemotron') {
+    const segs = [...selectedNemotron].map(i => ({ name: savedSegments[i].name, ...savedSegments[i].criteria }));
+    if (!segs.length) { showError('Select at least one segment.'); document.getElementById('scoreBtn').disabled = false; hideStatus(); return; }
+    body.nemotron_segments = segs;
+    body.mode = 'nemotron';
+  } else {
+    body.cluster_ids = [...selectedClusters];
+    body.mode = 'clusters';
+  }
+
+  try {
+    const res = await fetch(`${API}/search-ad/score`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Scoring failed'); }
+    const data = await res.json();
+    hideStatus();
+    renderResults(data);
+  } catch(e) {
+    hideStatus();
+    showError('Error: ' + e.message);
+  }
+
+  document.getElementById('scoreBtn').disabled = false;
+}
+
+initChips();
+updatePreview();
+</script>
+</body>
+</html>

@@ -3,36 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Synthetic Audience Analyzer — Soltrex</title>
+<title>Audience Intelligence — HATCH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f4f1;
-    --ink: #1a1916;
-    --ink-muted: #6b6a66;
-    --ink-faint: #b0afa9;
-    --surface: #ffffff;
-    --border: #e2e1dc;
-    --accent: #1a1916;
-    --radius: 10px;
-    --radius-lg: 16px;
+    --pink: #EE205D;
+    --pink-alt: #EA1F5A;
+    --pink-light: #F68AA9;
+    --black: #161616;
+    --white: #FFFFFF;
+    --amber: #FBAE40;
+    --border: #2a2a2a;
+    --muted: #666;
+    --surface: #1e1e1e;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    min-height: 100vh;
-  }
+  body { font-family: 'Lato', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
 
   header {
-    background: var(--surface);
+    background: var(--black);
     border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    height: 56px;
+    padding: 0 2.5rem;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -41,166 +34,258 @@
     z-index: 100;
   }
 
-  .wordmark {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 0.15em;
-    font-weight: 500;
-    color: var(--ink);
-    text-transform: uppercase;
-  }
-
-  .wordmark span {
-    color: var(--ink-faint);
-    font-size: 11px;
-    margin-left: 8px;
+  .logo {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
     letter-spacing: 0.1em;
-  }
-
-  .header-right {
+    text-transform: uppercase;
+    color: var(--white);
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
   }
+  .logo-dot { color: var(--pink); }
+
+  .badge {
+    background: var(--pink);
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+
+  .nav-links { display: flex; gap: 20px; align-items: center; }
+  .nav-links a {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--white); }
 
   .refresh-btn {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 16px;
     background: transparent;
-    color: var(--ink-muted);
+    border: 1px solid #333;
+    color: var(--muted);
     cursor: pointer;
+    border-radius: 3px;
     transition: all 0.15s;
   }
+  .refresh-btn:hover { border-color: var(--white); color: var(--white); }
 
-  .refresh-btn:hover { background: var(--bg); color: var(--ink); }
+  .hero {
+    background: var(--black);
+    padding: 3.5rem 2.5rem 3rem;
+    border-bottom: 1px solid var(--border);
+  }
 
-  main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
+  .hero-tag {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--pink); }
 
-  .hero { margin-bottom: 3rem; }
-  .hero h1 { font-size: 2rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
-  .hero p { font-size: 15px; color: var(--ink-muted); max-width: 520px; line-height: 1.6; }
+  .hero h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    line-height: 0.95;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 .pink { color: var(--pink); }
+  .hero h1 .light { font-weight: 400; font-style: italic; text-transform: none; font-size: 0.55em; color: var(--muted); }
 
-  .input-card {
+  .hero p { font-size: 15px; color: var(--muted); max-width: 500px; line-height: 1.7; }
+
+  main { max-width: 1280px; margin: 0 auto; padding: 2.5rem; }
+
+  .input-section {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 6px;
     padding: 2rem;
     margin-bottom: 2rem;
   }
 
-  .input-row {
-    display: flex;
-    gap: 12px;
-    align-items: center;
+  .section-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 1.25rem;
   }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+
+  .tab {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    cursor: pointer;
+    color: var(--muted);
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: none;
+    transition: all 0.15s;
+  }
+  .tab.active { color: var(--white); border-bottom-color: var(--pink); }
+  .tab:hover:not(.active) { color: #aaa; }
+
+  .input-row { display: flex; gap: 10px; }
 
   .url-input {
     flex: 1;
     height: 48px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    background: var(--black);
+    border: 1px solid #333;
+    border-radius: 4px;
     padding: 0 16px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Lato', sans-serif;
     font-size: 14px;
-    color: var(--ink);
-    background: var(--bg);
+    color: var(--white);
     outline: none;
     transition: border-color 0.15s;
   }
-
-  .url-input:focus { border-color: var(--ink); }
-  .url-input::placeholder { color: var(--ink-faint); }
+  .url-input:focus { border-color: var(--pink); }
+  .url-input::placeholder { color: #444; }
 
   .analyze-btn {
     height: 48px;
-    padding: 0 24px;
-    background: var(--ink);
-    color: white;
+    padding: 0 28px;
+    background: var(--pink);
+    color: var(--white);
     border: none;
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     cursor: pointer;
     white-space: nowrap;
-    transition: opacity 0.15s;
+    transition: background 0.15s;
   }
-
-  .analyze-btn:hover { opacity: 0.85; }
+  .analyze-btn:hover { background: var(--pink-alt); }
   .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .clusters-row {
-    margin-top: 1.25rem;
+  .mode-row { margin-top: 1.25rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .mode-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #444;
+  }
+
+  .mode-toggle {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
+    background: var(--black);
+    border: 1px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
   }
 
-  .clusters-label {
-    font-size: 12px;
-    color: var(--ink-muted);
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.05em;
-  }
-
-  .cluster-chip {
-    font-size: 12px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--ink-muted);
+  .mode-btn {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    background: none;
+    border: none;
+    color: #555;
     cursor: pointer;
     transition: all 0.15s;
-    user-select: none;
   }
+  .mode-btn.active { background: var(--pink); color: var(--white); }
 
-  .cluster-chip.active {
-    background: var(--ink);
-    color: white;
-    border-color: var(--ink);
+  .chips-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.75rem; }
+
+  .chip {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 3px;
+    border: 1px solid #333;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.15s;
   }
+  .chip.active { background: var(--white); color: var(--black); border-color: var(--white); }
+  .chip.nemotron-chip.active { background: var(--pink); color: var(--white); border-color: var(--pink); }
 
   .status-bar {
     display: none;
     align-items: center;
     gap: 10px;
     padding: 12px 16px;
-    background: var(--bg);
-    border-radius: var(--radius);
+    background: var(--black);
+    border: 1px solid var(--border);
+    border-radius: 4px;
     margin-top: 1rem;
     font-size: 13px;
-    color: var(--ink-muted);
+    color: var(--muted);
   }
-
   .status-bar.visible { display: flex; }
 
   .spinner {
     width: 14px; height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--ink);
+    border: 2px solid #333;
+    border-top-color: var(--pink);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     flex-shrink: 0;
   }
-
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .error-bar {
     display: none;
     padding: 12px 16px;
-    background: #fff5f5;
-    border: 1px solid #fecaca;
-    border-radius: var(--radius);
+    background: rgba(238,32,93,0.1);
+    border: 1px solid rgba(238,32,93,0.3);
+    border-radius: 4px;
     margin-top: 1rem;
     font-size: 13px;
-    color: #dc2626;
+    color: var(--pink-light);
   }
-
   .error-bar.visible { display: block; }
 
   .results { display: none; }
@@ -209,289 +294,270 @@
   .video-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
+    border-radius: 6px;
+    padding: 1.75rem;
     display: flex;
-    gap: 1.25rem;
-    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
     align-items: flex-start;
   }
 
   .video-thumb {
-    width: 140px;
-    height: 80px;
-    border-radius: 8px;
+    width: 160px; height: 90px;
+    border-radius: 3px;
     object-fit: cover;
     flex-shrink: 0;
-    background: var(--bg);
+    background: #2a2a2a;
   }
 
-  .video-meta h2 { font-size: 15px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
-  .video-meta .channel { font-size: 13px; color: var(--ink-muted); margin-bottom: 8px; }
-
-  .real-stats {
-    display: flex;
-    gap: 16px;
-  }
-
-  .real-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .real-stat .val {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-  }
-
-  .real-stat .lbl {
-    font-size: 11px;
-    color: var(--ink-faint);
+  .video-meta h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+    line-height: 1.3;
   }
+
+  .video-channel {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .real-stats { display: flex; gap: 24px; }
+  .real-stat .val { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: var(--pink); }
+  .real-stat .lbl { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; margin-top: 2px; }
 
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 1.5rem;
-  }
-
-  .summary-card {
-    background: var(--surface);
+    gap: 1px;
+    background: var(--border);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 2rem;
   }
 
+  .summary-card { background: var(--surface); padding: 1.75rem; }
   .summary-card .metric {
-    font-family: 'DM Mono', monospace;
-    font-size: 26px;
-    font-weight: 500;
-    margin-bottom: 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--pink);
     letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 6px;
   }
-
   .summary-card .metric-label {
-    font-size: 12px;
-    color: var(--ink-muted);
-  }
-
-  .section-title {
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--ink-muted);
-    margin-bottom: 1rem;
+    color: #444;
   }
+
+  .segments-heading {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .segments-heading::before { content: ''; display: block; width: 16px; height: 1px; background: var(--pink); }
 
   .segments-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 2rem;
-  }
-
-  .segment-card {
-    background: var(--surface);
+    gap: 1px;
+    background: var(--border);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    position: relative;
+    border-radius: 6px;
     overflow: hidden;
   }
 
-  .segment-accent {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
+  .segment-card { background: var(--surface); padding: 1.75rem; position: relative; overflow: hidden; }
+  .segment-accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
 
   .segment-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    padding-left: 14px;
   }
 
   .segment-name {
-    font-size: 14px;
-    font-weight: 500;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     margin-bottom: 2px;
   }
 
-  .segment-sentiment {
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.05em;
-  }
+  .segment-count { font-size: 11px; color: #555; }
 
-  .sentiment-positive { background: #dcfce7; color: #166534; }
-  .sentiment-neutral { background: #f3f4f6; color: #374151; }
-  .sentiment-negative { background: #fee2e2; color: #991b1b; }
-  .sentiment-polarised { background: #fef3c7; color: #92400e; }
-
-  .segment-bars { margin-bottom: 1rem; }
-
-  .bar-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .bar-label {
-    font-size: 11px;
-    color: var(--ink-muted);
-    width: 80px;
+  .sentiment-badge {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 3px;
     flex-shrink: 0;
   }
+  .sentiment-positive  { background: rgba(7,127,64,0.2);   color: #4ade80; }
+  .sentiment-neutral   { background: rgba(255,255,255,0.08); color: #777; }
+  .sentiment-negative  { background: rgba(238,32,93,0.2);   color: var(--pink-light); }
+  .sentiment-polarised { background: rgba(251,174,64,0.15); color: var(--amber); }
 
-  .bar-track {
-    flex: 1;
-    height: 6px;
-    background: var(--bg);
-    border-radius: 3px;
-    overflow: hidden;
-  }
+  .bars { margin-bottom: 1.25rem; padding-left: 14px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #444; width: 72px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 3px; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+  .bar-val { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: #555; width: 36px; text-align: right; flex-shrink: 0; }
 
-  .bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.8s ease;
-  }
-
-  .bar-val {
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    color: var(--ink-muted);
-    width: 32px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  .segment-comment {
+  .comment-block {
+    background: var(--black);
+    border-left: 2px solid var(--pink);
+    padding: 10px 14px;
+    margin: 0 0 1rem 14px;
     font-size: 13px;
-    color: var(--ink-muted);
+    color: #bbb;
+    line-height: 1.6;
     font-style: italic;
-    line-height: 1.5;
-    padding: 10px 12px;
-    background: var(--bg);
-    border-radius: 8px;
-    margin-bottom: 10px;
   }
 
-  .segment-comment::before { content: '"'; }
-  .segment-comment::after { content: '"'; }
-
-  .segment-meta {
-    display: flex;
-    gap: 16px;
-    font-size: 11px;
-    color: var(--ink-faint);
-  }
-
-  .segment-meta span { display: flex; align-items: center; gap: 4px; }
-
-  .drop-off-tag {
-    display: inline-block;
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: var(--bg);
-    color: var(--ink-muted);
-    border: 1px solid var(--border);
-  }
-
-  .resonance-row {
-    margin-top: 10px;
+  .detail-rows { padding-left: 14px; }
+  .detail-row {
     font-size: 12px;
-    color: var(--ink-muted);
-    line-height: 1.5;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #222;
+  }
+  .detail-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .detail-row strong {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #444;
+    display: block;
+    margin-bottom: 3px;
   }
 
-  .resonance-row strong { color: var(--ink); font-weight: 500; }
+  .meta-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; padding-left: 14px; }
+  .drop-tag {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid #333;
+    border-radius: 3px;
+    color: #555;
+  }
+  .meta-pill {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 3px;
+    background: rgba(238,32,93,0.15);
+    color: var(--pink-light);
+  }
 
   @media (max-width: 768px) {
-    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .summary-grid { grid-template-columns: repeat(2,1fr); }
     .segments-grid { grid-template-columns: 1fr; }
     .video-card { flex-direction: column; }
-    .video-thumb { width: 100%; height: 160px; }
+    .hero { padding: 2.5rem 1.5rem; }
+    main { padding: 1.5rem; }
+    header { padding: 0 1.5rem; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="wordmark">SOLTREX <span>AI</span></div>
-  <div class="header-right">
-    <a href="/segments-ui" style="font-size:13px;color:var(--ink-muted);text-decoration:none;margin-right:16px">Segment builder</a>
-    <button class="refresh-btn" onclick="refreshNews()">↻ Refresh news</button>
+  <div class="logo">HATCH<span class="logo-dot">.</span><span class="badge">Audience Intelligence</span></div>
+  <div class="nav-links">
+    <a href="/">Analyzer</a>
+    <a href="/segments-ui">Segments</a>
+    <button class="refresh-btn" onclick="refreshNews()">↻ Refresh News</button>
   </div>
 </header>
 
-<main>
-  <div class="hero">
-    <h1>Synthetic Audience Analyzer</h1>
-    <p>Paste a YouTube link. We run it through living persona segments grounded in today's news — and predict how each audience would react.</p>
-  </div>
+<div class="hero">
+  <div class="hero-tag">Content Performance</div>
+  <h1>SYNTHETIC<br><span class="pink">AUDIENCE</span> <span class="light">analyzer</span></h1>
+  <p>Paste a YouTube URL or upload a video. We run it through living persona segments grounded in today's news and predict how each audience reacts.</p>
+</div>
 
-  <div class="input-card">
-    <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
-      <div class="cluster-chip active" id="tabUrl" onclick="setTab('url')" style="border-radius:8px;padding:6px 14px">YouTube URL</div>
-      <div class="cluster-chip" id="tabUpload" onclick="setTab('upload')" style="border-radius:8px;padding:6px 14px">Upload video</div>
+<main>
+  <div class="input-section">
+    <div class="section-label">Content Input</div>
+    <div class="tabs">
+      <button class="tab active" id="tabUrl" onclick="setTab('url')">YouTube URL</button>
+      <button class="tab" id="tabUpload" onclick="setTab('upload')">Upload Video</button>
     </div>
+
     <div id="urlTab">
       <div class="input-row">
-        <input
-          type="text"
-          class="url-input"
-          id="urlInput"
+        <input type="text" class="url-input" id="urlInput"
           placeholder="https://www.youtube.com/watch?v=..."
-          onkeydown="if(event.key==='Enter') analyze()"
-        />
+          onkeydown="if(event.key==='Enter') analyze()" />
         <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyze</button>
       </div>
     </div>
+
     <div id="uploadTab" style="display:none">
-      <div class="input-row" style="margin-bottom:10px">
-        <input type="file" id="videoFile" accept=".mp4,.mov,.webm,.avi,.m4v" style="flex:1;height:48px;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-family:inherit;font-size:14px;background:var(--bg);color:var(--ink-muted);" />
+      <div class="input-row">
+        <input type="file" id="videoFile" accept=".mp4,.mov,.webm,.avi,.m4v"
+          style="flex:1;height:48px;background:var(--black);border:1px solid #333;border-radius:4px;padding:12px 16px;font-family:Lato,sans-serif;font-size:13px;color:#555;outline:none;" />
         <button class="analyze-btn" id="uploadBtn" onclick="analyzeUpload()">Analyze</button>
       </div>
-      <div style="font-size:12px;color:var(--ink-faint);margin-top:6px">MP4, MOV or WebM · max 200MB · Claude sees video frames and transcribes audio automatically</div>
+      <div style="font-family:Montserrat,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#444;margin-top:8px">
+        MP4 · MOV · WebM · Max 200MB · Frames extracted + audio transcribed automatically
+      </div>
     </div>
 
-    <div class="clusters-row" style="flex-direction:column;align-items:flex-start;gap:10px">
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="clusters-label">Mode:</span>
-        <div id="modeToggle" style="display:flex;gap:6px">
-          <div class="cluster-chip active" id="modeCluster" onclick="setMode('clusters')">Default segments</div>
-          <div class="cluster-chip" id="modeNemotron" onclick="setMode('nemotron')">My Nemotron segments</div>
-        </div>
-      </div>
-      <div id="clusterRow" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-        <span class="clusters-label">Segments:</span>
-        <div id="clusterChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-      </div>
-      <div id="nemotronRow" style="display:none;flex-wrap:wrap;gap:8px;align-items:center">
-        <span class="clusters-label">Saved segments:</span>
-        <div id="nemotronChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-        <a href="/segments-ui" style="font-size:12px;color:var(--ink-muted);text-decoration:none;border:1px solid var(--border);padding:5px 10px;border-radius:20px">+ Build segment</a>
+    <div class="mode-row">
+      <span class="mode-label">Audience Mode</span>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeDefault" onclick="setMode('clusters')">Default Segments</button>
+        <button class="mode-btn" id="modeNemotron" onclick="setMode('nemotron')">My Segments</button>
       </div>
     </div>
+
+    <div id="clusterChipsRow" class="chips-row"></div>
+    <div id="nemotronChipsRow" class="chips-row" style="display:none"></div>
 
     <div class="status-bar" id="statusBar">
       <div class="spinner"></div>
-      <span id="statusText">Extracting video data...</span>
+      <span id="statusText">Analyzing...</span>
     </div>
-
     <div class="error-bar" id="errorBar"></div>
   </div>
 
@@ -502,286 +568,225 @@
 const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
 
 const CLUSTERS = {
-  nyc_tech_worker:      { label: 'NYC Tech Worker',      color: '#5856D6' },
+  nyc_tech_worker:      { label: 'NYC Tech Worker',     color: '#5856D6' },
   suburban_parent:      { label: 'Suburban Parent',      color: '#34C759' },
   college_student:      { label: 'College Student',      color: '#FF9500' },
   midwest_tradesperson: { label: 'Midwest Tradesperson', color: '#FF3B30' },
-  coastal_creative:     { label: 'Coastal Creative',     color: '#AF52DE' }
+  coastal_creative:     { label: 'Coastal Creative',     color: '#AF52DE' },
+  video_game_enthusiast:{ label: 'Gamer',                color: '#00C7BE' }
 };
 
-let selectedClusters   = new Set(Object.keys(CLUSTERS));
-let selectedNemotron   = new Set();
-let currentMode        = 'clusters';
-let savedSegments      = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
-
-// ── Mode toggle ──────────────────────────────────────────────────────────────
-
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('modeCluster').classList.toggle('active', mode === 'clusters');
-  document.getElementById('modeNemotron').classList.toggle('active', mode === 'nemotron');
-  document.getElementById('clusterRow').style.display    = mode === 'clusters'  ? 'flex' : 'none';
-  document.getElementById('nemotronRow').style.display   = mode === 'nemotron'  ? 'flex' : 'none';
-}
-
-// ── Default cluster chips ────────────────────────────────────────────────────
+let selectedClusters = new Set(Object.keys(CLUSTERS));
+let selectedNemotron = new Set();
+let savedSegments    = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
+let currentMode      = 'clusters';
 
 function initChips() {
-  const container = document.getElementById('clusterChips');
-  container.innerHTML = '';
+  const row = document.getElementById('clusterChipsRow');
+  row.innerHTML = '';
   for (const [id, info] of Object.entries(CLUSTERS)) {
-    const chip = document.createElement('div');
-    chip.className = 'cluster-chip active';
-    chip.textContent = info.label;
-    chip.dataset.id = id;
-    chip.onclick = () => toggleCluster(id, chip);
-    container.appendChild(chip);
+    const c = document.createElement('button');
+    c.className = 'chip active';
+    c.textContent = info.label;
+    c.dataset.id  = id;
+    c.onclick = () => toggleCluster(id, c);
+    row.appendChild(c);
   }
-  initNemotronChips();
+  renderNemotronChips();
+}
+
+function renderNemotronChips() {
+  const row = document.getElementById('nemotronChipsRow');
+  if (!savedSegments.length) {
+    row.innerHTML = '<span style="font-family:Montserrat,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#444">No saved segments — <a href="/segments-ui" style="color:var(--pink);text-decoration:none">build one</a></span>';
+    return;
+  }
+  row.innerHTML = savedSegments.map((s, i) =>
+    `<button class="chip nemotron-chip" data-i="${i}" onclick="toggleNemotron(${i}, this)">${s.name}</button>`
+  ).join('');
 }
 
 function toggleCluster(id, el) {
-  if (selectedClusters.has(id)) {
-    if (selectedClusters.size === 1) return;
-    selectedClusters.delete(id);
-    el.classList.remove('active');
-  } else {
-    selectedClusters.add(id);
-    el.classList.add('active');
-  }
+  if (selectedClusters.has(id)) { if (selectedClusters.size === 1) return; selectedClusters.delete(id); el.classList.remove('active'); }
+  else { selectedClusters.add(id); el.classList.add('active'); }
 }
 
-// ── Nemotron segment chips ───────────────────────────────────────────────────
-
-function initNemotronChips() {
-  savedSegments = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
-  const container = document.getElementById('nemotronChips');
-  container.innerHTML = '';
-  if (!savedSegments.length) {
-    container.innerHTML = '<span style="font-size:12px;color:var(--ink-faint)">No saved segments yet</span>';
-    return;
-  }
-  savedSegments.forEach((seg, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'cluster-chip active';
-    chip.textContent = seg.name + ' (' + (seg.count || '?') + ')';
-    chip.dataset.idx = i;
-    chip.onclick = () => toggleNemotron(i, chip);
-    selectedNemotron.add(i);
-    container.appendChild(chip);
-  });
+function toggleNemotron(i, el) {
+  if (selectedNemotron.has(i)) { selectedNemotron.delete(i); el.classList.remove('active'); }
+  else { selectedNemotron.add(i); el.classList.add('active'); }
 }
 
-function toggleNemotron(idx, el) {
-  if (selectedNemotron.has(idx)) {
-    if (selectedNemotron.size === 1) return;
-    selectedNemotron.delete(idx);
-    el.classList.remove('active');
-  } else {
-    selectedNemotron.add(idx);
-    el.classList.add('active');
-  }
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeDefault').classList.toggle('active', mode === 'clusters');
+  document.getElementById('modeNemotron').classList.toggle('active', mode === 'nemotron');
+  document.getElementById('clusterChipsRow').style.display  = mode === 'clusters'  ? 'flex' : 'none';
+  document.getElementById('nemotronChipsRow').style.display = mode === 'nemotron'  ? 'flex' : 'none';
 }
 
-// ── Utilities ────────────────────────────────────────────────────────────────
-
-async function refreshNews() {
-  const btn = document.querySelector('.refresh-btn');
-  btn.textContent = '↻ Refreshing...';
-  btn.disabled = true;
-  try {
-    const res  = await fetch(`${API}/news/refresh`, { method: 'POST' });
-    const data = await res.json();
-    btn.textContent = `✓ Inserted ${data.inserted_memories} memories`;
-    setTimeout(() => { btn.textContent = '↻ Refresh news'; btn.disabled = false; }, 2500);
-  } catch(e) {
-    btn.textContent = 'Error refreshing';
-    setTimeout(() => { btn.textContent = '↻ Refresh news'; btn.disabled = false; }, 2000);
-  }
+function setTab(tab) {
+  document.getElementById('urlTab').style.display    = tab === 'url'    ? 'block' : 'none';
+  document.getElementById('uploadTab').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('tabUrl').classList.toggle('active',    tab === 'url');
+  document.getElementById('tabUpload').classList.toggle('active', tab === 'upload');
 }
 
-function setStatus(msg) {
-  document.getElementById('statusBar').classList.add('visible');
-  document.getElementById('statusText').textContent = msg;
-}
-function hideStatus() { document.getElementById('statusBar').classList.remove('visible'); }
-function showError(msg) { const b = document.getElementById('errorBar'); b.textContent = msg; b.classList.add('visible'); }
-function hideError() { document.getElementById('errorBar').classList.remove('visible'); }
-function fmtNum(n) { if (!n) return '—'; if (n>=1e6) return (n/1e6).toFixed(1)+'M'; if (n>=1e3) return (n/1e3).toFixed(1)+'K'; return n.toLocaleString(); }
-function sentimentClass(s) { return `sentiment-${s||'neutral'}`; }
+function setStatus(msg) { document.getElementById('statusBar').classList.add('visible'); document.getElementById('statusText').textContent = msg; }
+function hideStatus()   { document.getElementById('statusBar').classList.remove('visible'); }
+function showError(msg) { document.getElementById('errorBar').textContent = msg; document.getElementById('errorBar').classList.add('visible'); }
+function hideError()    { document.getElementById('errorBar').classList.remove('visible'); }
 
-// ── Render ───────────────────────────────────────────────────────────────────
+function fmtNum(n) {
+  if (!n) return '—';
+  if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
+  if (n >= 1000)    return (n/1000).toFixed(1)+'K';
+  return n.toLocaleString();
+}
+
+function sentimentClass(s) { return 'sentiment-' + (s || 'neutral'); }
 
 function renderResults(data) {
-  const video     = data.video;
-  const summary   = data.summary;
-  const reactions = data.segment_reactions;
-  const isNemotron = data.mode === 'nemotron';
+  const video    = data.video || {};
+  const summary  = data.summary || {};
+  const reactions = data.segment_reactions || [];
 
-  const segmentCards = reactions.map(r => `
+  const segCards = reactions.map(r => `
     <div class="segment-card">
       <div class="segment-accent" style="background:${r.cluster_color}"></div>
       <div class="segment-header">
         <div>
           <div class="segment-name">${r.cluster_label}</div>
-          ${isNemotron && r.persona_count ? `<div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${r.persona_count} Nemotron individuals</div>` : ''}
+          ${r.persona_count ? `<div class="segment-count">${r.persona_count} personas</div>` : ''}
         </div>
-        <span class="segment-sentiment ${sentimentClass(r.sentiment)}">${r.sentiment}</span>
+        <span class="sentiment-badge ${sentimentClass(r.sentiment)}">${r.sentiment || 'neutral'}</span>
       </div>
-      <div class="segment-bars">
+      <div class="bars">
         <div class="bar-row">
-          <span class="bar-label">Watch rate</span>
+          <span class="bar-label">Watch</span>
           <div class="bar-track"><div class="bar-fill" style="width:${r.watch_completion}%;background:${r.cluster_color}"></div></div>
           <span class="bar-val">${r.watch_completion}%</span>
         </div>
         <div class="bar-row">
-          <span class="bar-label">Engagement</span>
+          <span class="bar-label">Engage</span>
           <div class="bar-track"><div class="bar-fill" style="width:${r.engagement_score}%;background:${r.cluster_color}"></div></div>
           <span class="bar-val">${r.engagement_score}%</span>
         </div>
       </div>
-      <div class="segment-comment">${r.simulated_comment || 'No comment simulated.'}</div>
-      <div class="segment-meta">
-        <span>Drop-off: <span class="drop-off-tag">${(r.drop_off_point||'').replace(/_/g,' ')}</span></span>
-        <span>${r.would_share ? '↗ Would share' : ''}</span>
-        <span>${r.would_subscribe ? '+ Would subscribe' : ''}</span>
+      <div class="comment-block">${r.simulated_comment || ''}</div>
+      <div class="detail-rows">
+        ${r.reaction_summary          ? `<div class="detail-row"><strong>Reaction</strong>${r.reaction_summary}</div>` : ''}
+        ${r.key_resonance             ? `<div class="detail-row"><strong>Resonance</strong>${r.key_resonance}</div>` : ''}
+        ${r.key_friction              ? `<div class="detail-row"><strong>Friction</strong>${r.key_friction}</div>` : ''}
+        ${r.drop_off_reason           ? `<div class="detail-row"><strong>Drop-off</strong>${r.drop_off_reason}</div>` : ''}
+        ${r.purchase_or_action_intent ? `<div class="detail-row"><strong>Action Intent</strong>${r.purchase_or_action_intent}</div>` : ''}
+        ${r.authenticity_read         ? `<div class="detail-row"><strong>Authenticity</strong>${r.authenticity_read}</div>` : ''}
+        ${r.segment_diversity_note    ? `<div class="detail-row"><strong>Within-Segment Split</strong>${r.segment_diversity_note}</div>` : ''}
       </div>
-      ${r.key_resonance ? `<div class="resonance-row"><strong>Resonance:</strong> ${r.key_resonance}</div>` : ''}
-      ${r.key_friction  ? `<div class="resonance-row"><strong>Friction:</strong> ${r.key_friction}</div>` : ''}
-      ${r.drop_off_reason ? `<div class="resonance-row"><strong>Drop-off:</strong> ${r.drop_off_reason}</div>` : ''}
-      ${r.purchase_or_action_intent ? `<div class="resonance-row"><strong>Action intent:</strong> ${r.purchase_or_action_intent}</div>` : ''}
-      ${r.authenticity_read ? `<div class="resonance-row"><strong>Authenticity:</strong> ${r.authenticity_read}</div>` : ''}
-      ${r.segment_diversity_note ? `<div class="resonance-row" style="color:var(--ink-faint)"><strong>Within-segment split:</strong> ${r.segment_diversity_note}</div>` : ''}
-    </div>
-  `).join('');
+      <div class="meta-pills">
+        <span class="drop-tag">${(r.drop_off_point||'').replace(/_/g,' ')}</span>
+        ${r.would_share     ? '<span class="meta-pill">↗ Would Share</span>'     : ''}
+        ${r.would_subscribe ? '<span class="meta-pill">+ Would Subscribe</span>' : ''}
+      </div>
+    </div>`).join('');
 
   document.getElementById('results').innerHTML = `
     <div class="video-card">
-      ${video.thumbnail ? `<img class="video-thumb" src="${video.thumbnail}" alt="" onerror="this.style.display='none'">` : ''}
+      ${video.thumbnail ? `<img class="video-thumb" src="${video.thumbnail}" onerror="this.style.display='none'" alt="">` : ''}
       <div class="video-meta">
-        <h2>${video.title||'Video'}</h2>
-        <div class="channel">${video.channel||''}</div>
+        <h2>${video.title || 'Video'}</h2>
+        <div class="video-channel">${video.channel || ''}</div>
         <div class="real-stats">
-          <div class="real-stat"><span class="val">${fmtNum(video.real_views)}</span><span class="lbl">Real views</span></div>
-          <div class="real-stat"><span class="val">${fmtNum(video.real_likes)}</span><span class="lbl">Real likes</span></div>
-          <div class="real-stat"><span class="val">${Math.floor((video.duration||0)/60)}m ${(video.duration||0)%60}s</span><span class="lbl">Duration</span></div>
+          <div class="real-stat"><div class="val">${fmtNum(video.real_views)}</div><div class="lbl">Real Views</div></div>
+          <div class="real-stat"><div class="val">${fmtNum(video.real_likes)}</div><div class="lbl">Real Likes</div></div>
+          <div class="real-stat"><div class="val">${Math.floor((video.duration||0)/60)}m ${(video.duration||0)%60}s</div><div class="lbl">Duration</div></div>
         </div>
       </div>
     </div>
     <div class="summary-grid">
-      <div class="summary-card"><div class="metric">${summary.avg_watch_completion}%</div><div class="metric-label">Avg watch completion</div></div>
-      <div class="summary-card"><div class="metric">${summary.avg_engagement_score}%</div><div class="metric-label">Avg engagement score</div></div>
-      <div class="summary-card"><div class="metric">${summary.dominant_sentiment}</div><div class="metric-label">Dominant sentiment</div></div>
-      <div class="summary-card"><div class="metric">${summary.predicted_share_rate}%</div><div class="metric-label">Would share</div></div>
+      <div class="summary-card"><div class="metric">${summary.avg_watch_completion}%</div><div class="metric-label">Avg Watch</div></div>
+      <div class="summary-card"><div class="metric">${summary.avg_engagement_score}%</div><div class="metric-label">Avg Engagement</div></div>
+      <div class="summary-card"><div class="metric">${summary.dominant_sentiment}</div><div class="metric-label">Dominant Sentiment</div></div>
+      <div class="summary-card"><div class="metric">${summary.predicted_share_rate}%</div><div class="metric-label">Would Share</div></div>
     </div>
-    <div class="section-title">Segment reactions ${isNemotron ? '— Nemotron panel' : '— Default segments'}</div>
-    <div class="segments-grid">${segmentCards}</div>
-  `;
+    <div class="segments-heading">Segment Reactions</div>
+    <div class="segments-grid">${segCards}</div>`;
+
   document.getElementById('results').classList.add('visible');
 }
-
-// ── Analyze ──────────────────────────────────────────────────────────────────
 
 async function analyze() {
   const url = document.getElementById('urlInput').value.trim();
   if (!url) return;
-
   hideError();
   document.getElementById('results').classList.remove('visible');
   document.getElementById('analyzeBtn').disabled = true;
   setStatus('Extracting video data...');
-
   try {
     let body = { youtube_url: url };
-
     if (currentMode === 'nemotron') {
-      const segs = [...selectedNemotron].map(i => ({
-        name: savedSegments[i].name,
-        ...savedSegments[i].criteria
-      }));
-      if (!segs.length) throw new Error('Select at least one Nemotron segment.');
-      body.nemotron_segments = segs;
-      body.mode = 'nemotron';
-      setStatus(`Running ${segs.length} Nemotron segment${segs.length>1?'s':''}...`);
+      const segs = [...selectedNemotron].map(i => ({ name: savedSegments[i].name, ...savedSegments[i].criteria }));
+      if (!segs.length) throw new Error('Select at least one segment.');
+      body.nemotron_segments = segs; body.mode = 'nemotron';
+      setStatus(`Running ${segs.length} segment reaction${segs.length>1?'s':''}...`);
     } else {
       body.cluster_ids = [...selectedClusters];
-      setStatus('Running default segment reactions...');
+      setStatus('Running audience reactions...');
     }
-
-    const res = await fetch(`${API}/analyze/youtube`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Analysis failed'); }
+    const res = await fetch(`${API}/analyze/youtube`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'Analysis failed'); }
     const data = await res.json();
-    hideStatus();
-    renderResults(data);
-
-  } catch(e) {
-    hideStatus();
-    showError('Error: ' + e.message);
-  }
-
+    hideStatus(); renderResults(data);
+  } catch(e) { hideStatus(); showError('Error: ' + e.message); }
   document.getElementById('analyzeBtn').disabled = false;
 }
 
-initChips();
-
-// ── Tab switching ─────────────────────────────────────────────────────────────
-function setTab(tab) {
-  document.getElementById('urlTab').style.display    = tab==='url'    ? 'block' : 'none';
-  document.getElementById('uploadTab').style.display = tab==='upload' ? 'block' : 'none';
-  document.getElementById('tabUrl').classList.toggle('active',    tab==='url');
-  document.getElementById('tabUpload').classList.toggle('active', tab==='upload');
-}
-
-// ── Upload analyze ────────────────────────────────────────────────────────────
 async function analyzeUpload() {
   const fileInput = document.getElementById('videoFile');
   if (!fileInput.files.length) { showError('Please select a video file.'); return; }
-
   const file = fileInput.files[0];
   hideError();
   document.getElementById('results').classList.remove('visible');
   document.getElementById('uploadBtn').disabled = true;
   setStatus(`Uploading ${file.name}...`);
-
   try {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('title', file.name);
-
     if (currentMode === 'nemotron') {
-      const segs = [...selectedNemotron].map(i => ({
-        name: savedSegments[i].name,
-        ...savedSegments[i].criteria
-      }));
-      if (!segs.length) throw new Error('Select at least one Nemotron segment.');
+      const segs = [...selectedNemotron].map(i => ({ name: savedSegments[i].name, ...savedSegments[i].criteria }));
+      if (!segs.length) throw new Error('Select at least one segment.');
       formData.append('nemotron_segments', JSON.stringify(segs));
       formData.append('mode', 'nemotron');
     } else {
       formData.append('cluster_ids', JSON.stringify([...selectedClusters]));
       formData.append('mode', 'clusters');
     }
-
     setStatus('Transcribing audio and extracting frames...');
-    const res = await fetch(`${API}/upload/video`, { method: 'POST', body: formData });
+    const res = await fetch(`${API}/upload/video`, { method:'POST', body:formData });
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'Upload failed'); }
-
     setStatus('Running audience reactions...');
     const data = await res.json();
-    hideStatus();
-    renderResults(data);
-
-  } catch(e) {
-    hideStatus();
-    showError('Error: ' + e.message);
-  }
-
+    hideStatus(); renderResults(data);
+  } catch(e) { hideStatus(); showError('Error: ' + e.message); }
   document.getElementById('uploadBtn').disabled = false;
 }
+
+async function refreshNews() {
+  const btn = document.querySelector('.refresh-btn');
+  btn.textContent = '↻ Refreshing...';
+  btn.disabled = true;
+  try {
+    const res  = await fetch(`${API}/news/refresh`, { method:'POST' });
+    const data = await res.json();
+    btn.textContent = `✓ ${data.inserted_memories||0} Memories Added`;
+    setTimeout(() => { btn.textContent = '↻ Refresh News'; btn.disabled = false; }, 2500);
+  } catch(e) {
+    btn.textContent = 'Error';
+    setTimeout(() => { btn.textContent = '↻ Refresh News'; btn.disabled = false; }, 2000);
+  }
+}
+
+initChips();
 </script>
 </body>
 </html>

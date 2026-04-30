@@ -34,7 +34,12 @@ def get_ffprobe_path():
     return "ffprobe"
 
 def extract_frames(video_path: str, output_dir: str, interval_seconds: int = 10, max_frames: int = 8) -> list:
-    ffmpeg = get_ffmpeg_path()
+    try:
+        ffmpeg = get_ffmpeg_path()
+        print(f"extract_frames: using ffmpeg at {ffmpeg}")
+    except Exception as e:
+        print(f"extract_frames: ffmpeg not found — {e}")
+        return []
     cmd = [
         ffmpeg, "-i", video_path,
         "-vf", f"fps=1/{interval_seconds},scale=640:-1",
@@ -42,12 +47,15 @@ def extract_frames(video_path: str, output_dir: str, interval_seconds: int = 10,
         f"{output_dir}/frame_%04d.jpg",
         "-y", "-loglevel", "error"
     ]
-    subprocess.run(cmd, capture_output=True, timeout=120)
+    result = subprocess.run(cmd, capture_output=True, timeout=120)
+    if result.returncode != 0:
+        print(f"extract_frames ffmpeg error: {result.stderr.decode()[:300]}")
     frames = sorted([
         os.path.join(output_dir, f)
         for f in os.listdir(output_dir)
         if f.endswith('.jpg')
     ])
+    print(f"extract_frames: extracted {len(frames)} frames")
     return frames[:max_frames]
 
 def frames_to_base64(frame_paths: list) -> list:

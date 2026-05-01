@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-yt-dlp
 feedparser
 anthropic
 psycopg2-binary
@@ -9,3 +8,4 @@ httpx
 aiofiles
 ffmpeg-python
 imageio-ffmpeg
+youtube-transcript-api

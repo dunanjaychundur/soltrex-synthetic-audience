@@ -9,3 +9,4 @@ aiofiles
 ffmpeg-python
 imageio-ffmpeg
 youtube-transcript-api
+pymupdf

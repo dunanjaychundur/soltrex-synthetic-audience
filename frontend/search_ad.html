@@ -3,354 +3,206 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Search Ad Scorer — HATCH</title>
+<title>Journey Scorer — HATCH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-<!-- pdf.js UMD build — loaded eagerly so it's ready before any upload -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-  if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-</script>
 <style>
-  :root {
-    --pink: #EE205D;
-    --pink-alt: #EA1F5A;
-    --pink-light: #F68AA9;
-    --black: #161616;
-    --white: #FFFFFF;
-    --amber: #FBAE40;
-    --border: #2a2a2a;
-    --muted: #666;
-    --surface: #1e1e1e;
-    --green: #077F40;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Lato', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
-
-  header {
-    background: var(--black);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2.5rem;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); display: flex; align-items: center; gap: 10px; }
-  .logo-dot { color: var(--pink); }
-  .badge { background: var(--pink); color: var(--white); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 3px; }
-  .nav-links { display: flex; gap: 20px; align-items: center; }
-  .nav-links a { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.15s; }
-  .nav-links a:hover { color: var(--white); }
-
-  .hero { padding: 3.5rem 2.5rem 3rem; border-bottom: 1px solid var(--border); }
-  .hero-tag { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--pink); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
-  .hero-tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--pink); }
-  .hero h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.95; margin-bottom: 1.5rem; }
-  .hero h1 .pink { color: var(--pink); }
-  .hero h1 .light { font-weight: 400; font-style: italic; text-transform: none; font-size: 0.55em; color: var(--muted); }
-  .hero p { font-size: 15px; color: var(--muted); max-width: 520px; line-height: 1.7; }
-
-  main { max-width: 1280px; margin: 0 auto; padding: 2.5rem; display: grid; grid-template-columns: 400px 1fr; gap: 24px; align-items: start; }
-
-  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.75rem; position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; }
-  .card-title { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); margin-bottom: 1.5rem; }
-
-  .section-divider {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #444;
-    margin: 1.25rem 0 1rem;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .field { margin-bottom: 1rem; }
-  .field label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
-  .field label span { font-size: 9px; color: #444; font-weight: 400; letter-spacing: 0.04em; text-transform: none; }
-
-  .field input, .field select, .field textarea {
-    width: 100%;
-    background: var(--black);
-    border: 1px solid #333;
-    border-radius: 4px;
-    padding: 10px 12px;
-    font-family: 'Lato', sans-serif;
-    font-size: 14px;
-    color: var(--white);
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .field input { height: 40px; }
-  .field textarea { resize: none; line-height: 1.5; }
-  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--pink); }
-  .field input::placeholder, .field textarea::placeholder { color: #444; }
-  .field select option { background: var(--black); }
-
-  .char-count { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: #444; text-align: right; margin-top: 3px; letter-spacing: 0.04em; }
-  .char-count.over { color: var(--pink); }
-
-  /* Ad preview */
-  .ad-preview { background: var(--black); border: 1px solid #333; border-radius: 4px; padding: 14px; margin-bottom: 1.25rem; }
-  .ad-preview-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; margin-bottom: 8px; }
-  .ad-preview-url { font-size: 12px; color: #4ade80; margin-bottom: 3px; font-family: 'Lato', sans-serif; }
-  .ad-preview-headlines { font-size: 14px; color: #60a5fa; margin-bottom: 4px; font-family: 'Lato', sans-serif; line-height: 1.4; }
-  .ad-preview-desc { font-size: 12px; color: #aaa; font-family: 'Lato', sans-serif; line-height: 1.5; }
-  .ad-label-badge { display: inline-block; font-family: 'Montserrat', sans-serif; font-size: 8px; font-weight: 700; padding: 1px 5px; border: 1px solid #555; color: #777; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-
-  .mode-row { margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .mode-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; }
-  .mode-toggle { display: flex; background: var(--black); border: 1px solid #333; border-radius: 4px; overflow: hidden; }
-  .mode-btn { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 14px; background: none; border: none; color: #555; cursor: pointer; transition: all 0.15s; }
-  .mode-btn.active { background: var(--pink); color: var(--white); }
-
-  .chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 3px; border: 1px solid #333; background: transparent; color: #555; cursor: pointer; transition: all 0.15s; }
-  .chip.active { background: var(--white); color: var(--black); border-color: var(--white); }
-  .chip.nemotron-chip.active { background: var(--pink); color: var(--white); border-color: var(--pink); }
-
-  /* Landing page upload zone */
-  .upload-zone {
-    border: 1px dashed #333;
-    border-radius: 4px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    position: relative;
-    margin-bottom: 0.75rem;
-  }
-  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--pink); background: rgba(238,32,93,0.04); }
-  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .upload-icon { font-size: 22px; margin-bottom: 6px; color: #444; }
-  .upload-zone-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #555; margin-bottom: 3px; }
-  .upload-zone-sub { font-size: 11px; color: #444; }
-
-  .lp-thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.75rem; }
-  .lp-thumb { position: relative; width: 60px; height: 60px; border-radius: 3px; overflow: hidden; border: 1px solid #333; flex-shrink: 0; }
-  .lp-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .lp-thumb .rm-btn { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.8); border: none; border-radius: 50%; color: #fff; font-size: 10px; line-height: 16px; text-align: center; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
-  .lp-thumb .rm-btn:hover { background: var(--pink); }
-
-  .lp-count-pill { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: #555; }
-  .lp-count-pill.has-files { color: #4ade80; }
-
-  /* Conversion goal row */
-  .conv-goal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
-  .conv-goal-row label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
-  .conv-goal-row input { flex: 1; }
-
-  .score-btn { width: 100%; height: 44px; background: var(--pink); color: var(--white); border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-top: 1rem; transition: background 0.15s; }
-  .score-btn:hover { background: var(--pink-alt); }
-  .score-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .status-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: var(--black); border: 1px solid var(--border); border-radius: 4px; margin-top: 1rem; font-size: 13px; color: var(--muted); }
-  .status-bar.visible { display: flex; }
-  .spinner { width: 14px; height: 14px; border: 2px solid #333; border-top-color: var(--pink); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .error-bar { display: none; padding: 10px 14px; background: rgba(238,32,93,0.1); border: 1px solid rgba(238,32,93,0.3); border-radius: 4px; margin-top: 1rem; font-size: 13px; color: var(--pink-light); }
-  .error-bar.visible { display: block; }
-
-  /* RESULTS */
-  .empty-state { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4rem 2rem; text-align: center; color: #444; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-
-  /* Summary grids */
-  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 1.5rem; }
-  .summary-grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 1.5rem; }
-  .summary-card { background: var(--surface); padding: 1.5rem; }
-  .summary-card .metric { font-family: 'Montserrat', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--pink); letter-spacing: -0.02em; line-height: 1; margin-bottom: 4px; }
-  .summary-card .metric.positive { color: #4ade80; }
-  .summary-card .metric.negative { color: var(--pink); }
-  .summary-card .metric-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; }
-  .summary-card .metric-sub { font-size: 11px; color: #555; margin-top: 3px; }
-
-  /* Funnel stage banner */
-  .funnel-banner {
-    display: flex;
-    align-items: stretch;
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-  }
-  .funnel-step {
-    flex: 1;
-    background: var(--surface);
-    padding: 1.25rem 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    position: relative;
-  }
-  .funnel-step::after {
-    content: '→';
-    position: absolute;
-    right: -10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    color: #333;
-    z-index: 1;
-  }
-  .funnel-step:last-child::after { display: none; }
-  .funnel-step-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; }
-  .funnel-step-val { font-family: 'Montserrat', sans-serif; font-size: 1.75rem; font-weight: 900; color: var(--white); }
-  .funnel-step-sub { font-size: 10px; color: #555; }
-  .funnel-step.weak { background: rgba(238,32,93,0.06); }
-  .funnel-step.weak .funnel-step-val { color: var(--pink); }
-
-  /* Quality bar */
-  .quality-section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; margin-bottom: 1.5rem; }
-  .quality-title { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px; }
-  .quality-title::before { content: ''; display: block; width: 16px; height: 1px; background: var(--pink); }
-
-  .quality-bars { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px 24px; }
-  .q-bar-row { display: flex; align-items: center; gap: 10px; }
-  .q-bar-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #555; width: 130px; flex-shrink: 0; }
-  .q-bar-track { flex: 1; height: 6px; background: #2a2a2a; border-radius: 3px; overflow: hidden; }
-  .q-bar-fill { height: 100%; border-radius: 3px; background: var(--pink); transition: width 0.8s ease; }
-  .q-bar-val { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: var(--white); width: 28px; text-align: right; flex-shrink: 0; }
-
-  /* Segment scores */
-  .segments-heading { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--pink); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
-  .segments-heading::before { content: ''; display: block; width: 16px; height: 1px; background: var(--pink); }
-
-  .seg-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-
-  .seg-card { background: var(--surface); padding: 1.5rem; position: relative; overflow: hidden; }
-  .seg-accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
-
-  .seg-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; padding-left: 14px; }
-  .seg-name { font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
-  .seg-count { font-size: 11px; color: #555; }
-
-  .emotion-badge { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 3px; flex-shrink: 0; }
-  .emotion-positive  { background: rgba(7,127,64,0.2);   color: #4ade80; }
-  .emotion-neutral   { background: rgba(255,255,255,0.08); color: #777; }
-  .emotion-negative  { background: rgba(238,32,93,0.2);   color: var(--pink-light); }
-  .emotion-suspicious{ background: rgba(251,174,64,0.15); color: var(--amber); }
-
-  .score-bars { padding-left: 14px; margin-bottom: 1.25rem; }
-  .s-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
-  .s-bar-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #444; width: 90px; flex-shrink: 0; }
-  .s-bar-track { flex: 1; height: 3px; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
-  .s-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
-  .s-bar-val { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: #666; width: 28px; text-align: right; flex-shrink: 0; }
-
-  .ctr-block { padding-left: 14px; margin-bottom: 1.25rem; display: flex; align-items: baseline; gap: 8px; }
-  .ctr-val { font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 900; color: var(--pink); }
-  .ctr-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #444; }
-  .ctr-vs { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; margin-left: 4px; }
-  .ctr-vs.up { color: #4ade80; }
-  .ctr-vs.down { color: var(--pink); }
-
-  .feedback-rows { padding-left: 14px; }
-  .feedback-row { font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #222; }
-  .feedback-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-  .feedback-row strong { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; display: block; margin-bottom: 3px; }
-
-  .click-pill { display: inline-flex; align-items: center; gap: 5px; font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 3px; margin: 10px 0 0 14px; }
-  .click-pill.yes { background: rgba(7,127,64,0.2); color: #4ade80; }
-  .click-pill.no  { background: rgba(238,32,93,0.15); color: var(--pink-light); }
-
-  /* Journey segment card - stage tabs */
-  .stage-tabs { display: flex; gap: 1px; background: #1a1a1a; border: 1px solid #222; border-radius: 4px; overflow: hidden; margin: 0 14px 1rem; }
-  .stage-tab { flex: 1; font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 0; background: none; border: none; color: #444; cursor: pointer; transition: all 0.15s; text-align: center; }
-  .stage-tab.active { background: var(--black); color: var(--white); }
-
-  .stage-panel { display: none; padding-left: 14px; }
-  .stage-panel.active { display: block; }
-
-  /* Scroll behaviour badge */
-  .scroll-badge { display: inline-block; font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 3px; background: rgba(255,255,255,0.06); color: #777; margin-bottom: 10px; }
-
-  /* Funnel verdict band */
-  .verdict-band { background: var(--black); border: 1px solid #222; border-radius: 4px; padding: 12px 14px; margin: 10px 14px 0; }
-  .verdict-band-label { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pink); margin-bottom: 6px; }
-  .verdict-band-text { font-size: 12px; color: #666; line-height: 1.6; }
-
-  @media (max-width: 960px) {
-    main { grid-template-columns: 1fr; }
-    .form-card { position: static; max-height: none; }
-    .summary-grid, .summary-grid-5 { grid-template-columns: repeat(2,1fr); }
-    .seg-grid { grid-template-columns: 1fr; }
-    .quality-bars { grid-template-columns: 1fr; }
-    .funnel-banner { flex-wrap: wrap; }
-    .funnel-step::after { display: none; }
-  }
+  :root { --pink:#EE205D;--pink-alt:#EA1F5A;--pink-light:#F68AA9;--black:#161616;--white:#FFFFFF;--amber:#FBAE40;--border:#2a2a2a;--muted:#666;--surface:#1e1e1e;--green:#077F40;--green-light:#4ade80; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Lato',sans-serif;background:var(--black);color:var(--white);min-height:100vh;}
+  header{background:var(--black);border-bottom:1px solid var(--border);padding:0 2.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .logo{font-family:'Montserrat',sans-serif;font-weight:900;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);display:flex;align-items:center;gap:10px;}
+  .logo-dot{color:var(--pink);}
+  .badge{background:var(--pink);color:var(--white);font-family:'Montserrat',sans-serif;font-weight:700;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 10px;border-radius:3px;}
+  .nav-links{display:flex;gap:20px;}
+  .nav-links a{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.15s;}
+  .nav-links a:hover,.nav-links a.active{color:var(--white);}
+  .hero{padding:3.5rem 2.5rem 3rem;border-bottom:1px solid var(--border);}
+  .hero-tag{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--pink);margin-bottom:1rem;display:flex;align-items:center;gap:10px;}
+  .hero-tag::before{content:'';display:block;width:24px;height:1px;background:var(--pink);}
+  .hero h1{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(2.5rem,5vw,4.5rem);letter-spacing:-0.02em;text-transform:uppercase;line-height:0.95;margin-bottom:1.5rem;}
+  .hero h1 .pink{color:var(--pink);}
+  .hero h1 .light{font-weight:400;font-style:italic;text-transform:none;font-size:0.55em;color:var(--muted);}
+  .hero p{font-size:15px;color:var(--muted);max-width:580px;line-height:1.7;}
+  .funnel-stages{display:flex;align-items:center;gap:0;margin-top:2rem;}
+  .stage-pill{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:6px 16px;background:var(--surface);border:1px solid var(--border);color:#444;}
+  .stage-pill:first-child{border-radius:4px 0 0 4px;}
+  .stage-pill:last-child{border-radius:0 4px 4px 0;}
+  .stage-pill.active{background:var(--pink);border-color:var(--pink);color:var(--white);}
+  .stage-arrow{color:#333;font-size:16px;margin:0 -1px;z-index:1;}
+  main{max-width:1280px;margin:0 auto;padding:2.5rem;display:grid;grid-template-columns:420px 1fr;gap:24px;align-items:start;}
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.75rem;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto;}
+  .form-card::-webkit-scrollbar{width:4px;}
+  .form-card::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
+  .card-title{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--pink);margin-bottom:1.25rem;}
+  .section-divider{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#444;margin:1.5rem 0 1rem;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .section-divider .stage-num{background:var(--pink);color:var(--white);font-size:9px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .field{margin-bottom:1rem;}
+  .field label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+  .field label span{font-size:9px;color:#444;font-weight:400;letter-spacing:0.04em;text-transform:none;}
+  .field input,.field select,.field textarea{width:100%;background:var(--black);border:1px solid #333;border-radius:4px;padding:9px 12px;font-family:'Lato',sans-serif;font-size:13px;color:var(--white);outline:none;transition:border-color 0.15s;}
+  .field input{height:38px;}
+  .field textarea{resize:none;line-height:1.5;}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--pink);}
+  .field input::placeholder,.field textarea::placeholder{color:#444;}
+  .field select option{background:var(--black);}
+  .char-count{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;color:#444;text-align:right;margin-top:3px;}
+  .char-count.over{color:var(--pink);}
+  .ad-preview{background:var(--black);border:1px solid #333;border-radius:4px;padding:12px;margin-bottom:1rem;}
+  .ad-preview-label{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#444;margin-bottom:8px;}
+  .ad-label-badge{display:inline-block;font-family:'Montserrat',sans-serif;font-size:8px;font-weight:700;padding:1px 5px;border:1px solid #555;color:#777;border-radius:2px;margin-right:6px;}
+  .ad-preview-url{font-size:11px;color:var(--green-light);margin-bottom:3px;}
+  .ad-preview-headlines{font-size:13px;color:#60a5fa;margin-bottom:4px;line-height:1.4;}
+  .ad-preview-desc{font-size:11px;color:#aaa;line-height:1.5;}
+  .upload-area{border:1px dashed #444;border-radius:4px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;}
+  .upload-area:hover{border-color:var(--pink);}
+  .upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .upload-icon{font-size:24px;margin-bottom:6px;}
+  .upload-text{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#555;}
+  .upload-sub{font-size:11px;color:#444;margin-top:3px;}
+  .file-list{margin-top:8px;display:flex;flex-direction:column;gap:4px;}
+  .file-item{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--black);border:1px solid #333;border-radius:3px;font-size:12px;color:#aaa;}
+  .file-remove{background:none;border:none;color:#555;cursor:pointer;font-size:14px;padding:0 0 0 8px;transition:color 0.15s;}
+  .file-remove:hover{color:var(--pink);}
+  .mode-row{margin-bottom:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .mode-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#444;}
+  .mode-toggle{display:flex;background:var(--black);border:1px solid #333;border-radius:4px;overflow:hidden;}
+  .mode-btn{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;background:none;border:none;color:#555;cursor:pointer;transition:all 0.15s;}
+  .mode-btn.active{background:var(--pink);color:var(--white);}
+  .chips-row{display:flex;flex-wrap:wrap;gap:5px;}
+  .chip{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:5px 10px;border-radius:3px;border:1px solid #333;background:transparent;color:#555;cursor:pointer;transition:all 0.15s;}
+  .chip.active{background:var(--white);color:var(--black);border-color:var(--white);}
+  .chip.nemotron-chip.active{background:var(--pink);color:var(--white);border-color:var(--pink);}
+  .score-btn{width:100%;height:44px;background:var(--pink);color:var(--white);border:none;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;margin-top:1rem;transition:background 0.15s;}
+  .score-btn:hover{background:var(--pink-alt);}
+  .score-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .status-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--black);border:1px solid var(--border);border-radius:4px;margin-top:1rem;font-size:13px;color:var(--muted);}
+  .status-bar.visible{display:flex;}
+  .spinner{width:14px;height:14px;border:2px solid #333;border-top-color:var(--pink);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .error-bar{display:none;padding:10px 14px;background:rgba(238,32,93,0.1);border:1px solid rgba(238,32,93,0.3);border-radius:4px;margin-top:1rem;font-size:13px;color:var(--pink-light);}
+  .error-bar.visible{display:block;}
+  .empty-state{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4rem 2rem;text-align:center;color:#444;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:1.5rem;}
+  .summary-card{background:var(--surface);padding:1.5rem;}
+  .summary-card .metric{font-family:'Montserrat',sans-serif;font-size:2.5rem;font-weight:900;color:var(--pink);letter-spacing:-0.02em;line-height:1;margin-bottom:4px;}
+  .summary-card .metric-label{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#444;}
+  .summary-card .metric-sub{font-size:11px;color:#555;margin-top:3px;}
+  .health-banner{border-radius:6px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;}
+  .health-banner.strong{background:rgba(7,127,64,0.15);border:1px solid rgba(74,222,128,0.2);}
+  .health-banner.moderate{background:rgba(251,174,64,0.1);border:1px solid rgba(251,174,64,0.2);}
+  .health-banner.weak{background:rgba(238,32,93,0.1);border:1px solid rgba(238,32,93,0.2);}
+  .health-label{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;letter-spacing:-0.01em;text-transform:uppercase;}
+  .health-banner.strong .health-label{color:var(--green-light);}
+  .health-banner.moderate .health-label{color:var(--amber);}
+  .health-banner.weak .health-label{color:var(--pink-light);}
+  .health-sub{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#555;}
+  .health-stats{display:flex;gap:24px;}
+  .health-stat .val{font-family:'Montserrat',sans-serif;font-size:1.5rem;font-weight:900;color:var(--white);}
+  .health-stat .lbl{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#444;}
+  .segments-heading{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--pink);margin-bottom:1rem;display:flex;align-items:center;gap:10px;}
+  .segments-heading::before{content:'';display:block;width:16px;height:1px;background:var(--pink);}
+  .journey-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:12px;overflow:hidden;}
+  .journey-header{display:flex;align-items:center;padding:1.25rem 1.5rem;border-bottom:1px solid transparent;gap:12px;cursor:pointer;user-select:none;transition:border-color 0.15s;}
+  .journey-card.expanded .journey-header{border-bottom-color:var(--border);}
+  .journey-accent{width:4px;height:36px;border-radius:2px;flex-shrink:0;}
+  .journey-name{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;flex:1;}
+  .journey-count{font-size:11px;color:#555;}
+  .journey-pills{display:flex;gap:6px;margin-left:auto;align-items:center;}
+  .journey-pill{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 10px;border-radius:3px;}
+  .pill-click.yes,.pill-convert.yes,.pill-health.strong{background:rgba(7,127,64,0.2);color:var(--green-light);}
+  .pill-click.no,.pill-convert.no,.pill-health.weak{background:rgba(238,32,93,0.15);color:var(--pink-light);}
+  .pill-health.moderate{background:rgba(251,174,64,0.15);color:var(--amber);}
+  .expand-icon{font-size:12px;color:#444;transition:transform 0.2s;flex-shrink:0;}
+  .journey-card.expanded .expand-icon{transform:rotate(180deg);}
+  .journey-body{display:none;padding:1.5rem;}
+  .journey-card.expanded .journey-body{display:block;}
+  .stages-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem;}
+  .stage-col{background:var(--black);border-radius:4px;padding:1rem;border:1px solid #2a2a2a;}
+  .stage-col-title{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--pink);margin-bottom:0.75rem;display:flex;align-items:center;gap:6px;}
+  .stage-col-title .num{background:var(--pink);color:var(--white);font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .stage-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:8px;}
+  .stage-metric .val{font-family:'Montserrat',sans-serif;font-size:1.75rem;font-weight:900;color:var(--pink);}
+  .stage-metric .unit{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:#444;text-transform:uppercase;}
+  .mini-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+  .mini-bar-label{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#444;width:70px;flex-shrink:0;}
+  .mini-bar-track{flex:1;height:3px;background:#222;border-radius:2px;overflow:hidden;}
+  .mini-bar-fill{height:100%;border-radius:2px;background:var(--pink);}
+  .mini-bar-val{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:#555;width:28px;text-align:right;flex-shrink:0;}
+  .stage-text{font-size:12px;color:#666;line-height:1.6;margin-top:6px;}
+  .stage-text strong{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#444;display:block;margin-bottom:2px;margin-top:6px;}
+  .verdict-row{background:var(--black);border-radius:4px;padding:1rem;border:1px solid #2a2a2a;}
+  .verdict-title{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--pink);margin-bottom:0.75rem;}
+  .verdict-insight{font-size:13px;color:#ccc;line-height:1.6;margin-bottom:0.75rem;}
+  .verdict-rec{font-size:12px;color:#888;line-height:1.6;}
+  .verdict-rec strong{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#555;display:block;margin-bottom:3px;}
+  .weakest-tag{display:inline-block;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:3px;background:rgba(238,32,93,0.15);color:var(--pink-light);margin-left:6px;}
+  @media(max-width:960px){main{grid-template-columns:1fr;}.form-card{position:static;max-height:none;}.summary-grid{grid-template-columns:repeat(2,1fr);}.stages-row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">HATCH<span class="logo-dot">.</span><span class="badge">Audience Intelligence</span></div>
   <div class="nav-links">
     <a href="/">Analyzer</a>
     <a href="/segments-ui">Segments</a>
-    <a href="/search-ad-ui">Search Ads</a>
+    <a href="/search-ad-ui" class="active">Search Ads</a>
   </div>
 </header>
 
 <div class="hero">
-  <div class="hero-tag">Paid Search</div>
-  <h1>SEARCH AD<br><span class="pink">SCORER</span> <span class="light">creative + full journey</span></h1>
-  <p>Enter your search ad copy and optionally upload landing page screenshots or a PDF. Score ad creative only, or simulate the full customer journey — from click intent through to conversion.</p>
+  <div class="hero-tag">Paid Search · Full Funnel</div>
+  <h1>CUSTOMER<br><span class="pink">JOURNEY</span> <span class="light">scorer</span></h1>
+  <p>Score the complete paid search funnel — ad creative to landing page to conversion. Upload screenshots or PDFs of your landing page alongside ad copy for per-segment predictions at every stage.</p>
+  <div class="funnel-stages">
+    <div class="stage-pill active">① Search Ad</div>
+    <div class="stage-arrow">→</div>
+    <div class="stage-pill active">② Landing Page</div>
+    <div class="stage-arrow">→</div>
+    <div class="stage-pill active">③ Conversion</div>
+    <div class="stage-arrow">→</div>
+    <div class="stage-pill">Journey Verdict</div>
+  </div>
 </div>
 
 <main>
   <div class="form-card">
-    <div class="card-title">Ad Copy</div>
+    <div class="card-title">Customer Journey Setup</div>
 
-    <!-- Live Preview -->
-    <div class="ad-preview" id="adPreview">
+    <div class="section-divider"><span class="stage-num">1</span>Search Ad</div>
+
+    <div class="ad-preview">
       <div class="ad-preview-label">Live Preview</div>
       <div class="ad-preview-url" id="previewUrl">www.example.com</div>
-      <div class="ad-preview-headlines" id="previewHeadlines"><span class="ad-label-badge">Ad</span>Headline 1 | Headline 2 | Headline 3</div>
+      <div class="ad-preview-headlines" id="previewHeadlines"><span class="ad-label-badge">Ad</span>Your headlines here</div>
       <div class="ad-preview-desc" id="previewDesc">Your description will appear here...</div>
     </div>
 
-    <div class="field">
-      <label>Headline 1 <span id="h1Count">0/30</span></label>
-      <input type="text" id="h1" placeholder="Best Running Shoes 2024" maxlength="30" oninput="updatePreview();countChars('h1','h1Count',30)" />
-    </div>
-    <div class="field">
-      <label>Headline 2 <span id="h2Count">0/30</span></label>
-      <input type="text" id="h2" placeholder="Free Shipping On Orders $50+" maxlength="30" oninput="updatePreview();countChars('h2','h2Count',30)" />
-    </div>
-    <div class="field">
-      <label>Headline 3 <span id="h3Count">0/30</span></label>
-      <input type="text" id="h3" placeholder="Shop Now & Save 20%" maxlength="30" oninput="updatePreview();countChars('h3','h3Count',30)" />
-    </div>
-    <div class="field">
-      <label>Description 1 <span id="d1Count">0/90</span></label>
-      <textarea id="d1" placeholder="Award-winning running shoes for every pace. Breathable mesh, responsive cushioning, and a fit that feels custom." rows="2" maxlength="90" oninput="updatePreview();countChars('d1','d1Count',90)"></textarea>
-    </div>
-    <div class="field">
-      <label>Description 2 <span id="d2Count">0/90</span></label>
-      <textarea id="d2" placeholder="Browse 200+ styles. Free returns. Join 2M+ runners who trust us." rows="2" maxlength="90" oninput="updatePreview();countChars('d2','d2Count',90)"></textarea>
-    </div>
-    <div class="field">
-      <label>Display URL</label>
-      <input type="text" id="displayUrl" placeholder="www.brandname.com/running-shoes" oninput="updatePreview()" />
-    </div>
+    <div class="field"><label>Headline 1 <span id="h1c">0/30</span></label><input type="text" id="h1" placeholder="Best Running Shoes 2024" maxlength="30" oninput="updatePreview();cc('h1','h1c',30)"/></div>
+    <div class="field"><label>Headline 2 <span id="h2c">0/30</span></label><input type="text" id="h2" placeholder="Free Shipping On $50+" maxlength="30" oninput="updatePreview();cc('h2','h2c',30)"/></div>
+    <div class="field"><label>Headline 3 <span id="h3c">0/30</span></label><input type="text" id="h3" placeholder="Shop Now & Save 20%" maxlength="30" oninput="updatePreview();cc('h3','h3c',30)"/></div>
+    <div class="field"><label>Description 1 <span id="d1c">0/90</span></label><textarea id="d1" rows="2" maxlength="90" placeholder="Award-winning running shoes. Breathable mesh, responsive cushioning." oninput="updatePreview();cc('d1','d1c',90)"></textarea></div>
+    <div class="field"><label>Description 2 <span id="d2c">0/90</span></label><textarea id="d2" rows="2" maxlength="90" placeholder="Free returns. Join 2M+ runners." oninput="updatePreview();cc('d2','d2c',90)"></textarea></div>
+    <div class="field"><label>Display URL</label><input type="text" id="displayUrl" placeholder="www.brand.com/running-shoes" oninput="updatePreview()"/></div>
+    <div class="field"><label>Target Keyword</label><input type="text" id="keyword" placeholder="best running shoes for men"/></div>
 
-    <div class="section-divider">Targeting</div>
+    <div class="section-divider"><span class="stage-num">2</span>Landing Page</div>
 
     <div class="field">
-      <label>Target Keyword</label>
-      <input type="text" id="keyword" placeholder="e.g. best running shoes for men" />
+      <label>Conversion Action <span>What should they do?</span></label>
+      <input type="text" id="conversionAction" value="complete a purchase" placeholder="e.g. fill out a contact form, book a demo"/>
     </div>
+
+    <div class="upload-area">
+      <input type="file" id="lpFiles" accept=".jpg,.jpeg,.png,.webp,.pdf" multiple onchange="handleFiles()"/>
+      <div class="upload-icon">⬆</div>
+      <div class="upload-text">Upload screenshots or PDF</div>
+      <div class="upload-sub">JPG · PNG · WebP · PDF · Multiple files · Upload in scroll order</div>
+    </div>
+    <div class="file-list" id="fileList"></div>
+
+    <div class="section-divider"><span class="stage-num">3</span>Targeting</div>
+
     <div class="field">
       <label>Industry</label>
       <select id="industry">
@@ -367,692 +219,164 @@
         <option value="b2b">B2B</option>
       </select>
     </div>
-    <div class="field">
-      <label>Monthly Impressions <span>For click estimates</span></label>
-      <input type="number" id="impressions" value="10000" min="100" />
-    </div>
-
-    <div class="section-divider">Audience</div>
+    <div class="field"><label>Monthly Impressions</label><input type="number" id="impressions" value="10000" min="100"/></div>
 
     <div class="mode-row">
-      <span class="mode-label">Mode</span>
+      <span class="mode-label">Audience</span>
       <div class="mode-toggle">
         <button class="mode-btn active" id="modeDefault" onclick="setMode('clusters')">Default</button>
         <button class="mode-btn" id="modeNemotron" onclick="setMode('nemotron')">My Segments</button>
       </div>
     </div>
-
     <div id="clusterChipsRow" class="chips-row"></div>
     <div id="nemotronChipsRow" class="chips-row" style="display:none"></div>
 
-    <!-- ── Landing Page Upload ── -->
-    <div class="section-divider">Landing Page <span style="font-size:9px;color:#555;font-weight:400;letter-spacing:0;text-transform:none">optional — unlocks full journey scoring</span></div>
-
-    <div class="upload-zone" id="uploadZone">
-      <input type="file" id="lpFiles" accept="image/*,application/pdf" multiple onchange="handleFiles(this.files)" />
-      <div class="upload-icon">🖼</div>
-      <div class="upload-zone-label">Drop screenshots or a PDF</div>
-      <div class="upload-zone-sub">JPG, PNG or PDF · up to 6 pages/images</div>
-    </div>
-
-    <div class="lp-thumbs" id="lpThumbs"></div>
-    <div class="lp-count-pill" id="lpCountPill">No landing page added — ad-only scoring</div>
-
-    <div class="conv-goal-row" id="convGoalRow" style="display:none">
-      <label>Goal</label>
-      <input type="text" id="convGoal" placeholder="e.g. fill out the contact form" style="height:36px;font-size:13px" />
-    </div>
-
-    <button class="score-btn" id="scoreBtn" onclick="scoreAd()">Score Ad</button>
-
-    <div class="status-bar" id="statusBar">
-      <div class="spinner"></div>
-      <span id="statusText">Scoring creative quality...</span>
-    </div>
+    <button class="score-btn" id="scoreBtn" onclick="scoreJourney()">Score Full Journey</button>
+    <div class="status-bar" id="statusBar"><div class="spinner"></div><span id="statusText">Scoring journey...</span></div>
     <div class="error-bar" id="errorBar"></div>
   </div>
 
   <div id="resultsPanel">
-    <div class="empty-state">Enter your ad copy and click Score Ad to evaluate creative quality and estimate performance.<br><br>Upload landing page screenshots or a PDF to unlock full customer journey scoring.</div>
+    <div class="empty-state">Build your ad copy, upload landing page assets, and click Score Full Journey.</div>
   </div>
 </main>
 
 <script>
-const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+const API = window.location.hostname==='localhost'?'http://localhost:8000':'';
+const CLUSTERS={nyc_tech_worker:{label:'NYC Tech Worker',color:'#5856D6'},suburban_parent:{label:'Suburban Parent',color:'#34C759'},college_student:{label:'College Student',color:'#FF9500'},midwest_tradesperson:{label:'Midwest Tradesperson',color:'#FF3B30'},coastal_creative:{label:'Coastal Creative',color:'#AF52DE'},video_game_enthusiast:{label:'Gamer',color:'#00C7BE'}};
+let selectedClusters=new Set(Object.keys(CLUSTERS)),selectedNemotron=new Set(),savedSegments=JSON.parse(localStorage.getItem('soltrex_segments')||'[]'),currentMode='clusters',uploadedFiles=[];
 
-const CLUSTERS = {
-  nyc_tech_worker:      { label: 'NYC Tech Worker',     color: '#5856D6' },
-  suburban_parent:      { label: 'Suburban Parent',      color: '#34C759' },
-  college_student:      { label: 'College Student',      color: '#FF9500' },
-  midwest_tradesperson: { label: 'Midwest Tradesperson', color: '#FF3B30' },
-  coastal_creative:     { label: 'Coastal Creative',     color: '#AF52DE' },
-  video_game_enthusiast:{ label: 'Gamer',                color: '#00C7BE' }
-};
-
-let selectedClusters = new Set(Object.keys(CLUSTERS));
-let selectedNemotron = new Set();
-let savedSegments    = JSON.parse(localStorage.getItem('soltrex_segments') || '[]');
-let currentMode      = 'clusters';
-
-// Landing page state
-let lpImages = []; // { dataUrl, b64, name }
-
-// ── Chips ──────────────────────────────────────────────────────────────────
-function initChips() {
-  const row = document.getElementById('clusterChipsRow');
-  row.innerHTML = '';
-  for (const [id, info] of Object.entries(CLUSTERS)) {
-    const c = document.createElement('button');
-    c.className = 'chip active';
-    c.textContent = info.label;
-    c.onclick = () => toggleCluster(id, c);
-    row.appendChild(c);
-  }
+function initChips(){
+  const row=document.getElementById('clusterChipsRow');row.innerHTML='';
+  for(const[id,info]of Object.entries(CLUSTERS)){const c=document.createElement('button');c.className='chip active';c.textContent=info.label;c.onclick=()=>toggleCluster(id,c);row.appendChild(c);}
   renderNemotronChips();
 }
-
-function renderNemotronChips() {
-  const row = document.getElementById('nemotronChipsRow');
-  if (!savedSegments.length) {
-    row.innerHTML = '<span style="font-family:Montserrat,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#444">No saved segments — <a href="/segments-ui" style="color:var(--pink);text-decoration:none">build one</a></span>';
-    return;
-  }
-  row.innerHTML = savedSegments.map((s, i) =>
-    `<button class="chip nemotron-chip" onclick="toggleNemotron(${i}, this)">${s.name}</button>`
-  ).join('');
+function renderNemotronChips(){
+  const row=document.getElementById('nemotronChipsRow');
+  if(!savedSegments.length){row.innerHTML='<span style="font-family:Montserrat,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#444">No saved segments — <a href="/segments-ui" style="color:var(--pink);text-decoration:none">build one</a></span>';return;}
+  row.innerHTML=savedSegments.map((s,i)=>`<button class="chip nemotron-chip" onclick="toggleNemotron(${i},this)">${s.name}</button>`).join('');
 }
+function toggleCluster(id,el){if(selectedClusters.has(id)){if(selectedClusters.size===1)return;selectedClusters.delete(id);el.classList.remove('active');}else{selectedClusters.add(id);el.classList.add('active');}}
+function toggleNemotron(i,el){if(selectedNemotron.has(i)){selectedNemotron.delete(i);el.classList.remove('active');}else{selectedNemotron.add(i);el.classList.add('active');}}
+function setMode(mode){currentMode=mode;document.getElementById('modeDefault').classList.toggle('active',mode==='clusters');document.getElementById('modeNemotron').classList.toggle('active',mode==='nemotron');document.getElementById('clusterChipsRow').style.display=mode==='clusters'?'flex':'none';document.getElementById('nemotronChipsRow').style.display=mode==='nemotron'?'flex':'none';}
+function cc(inputId,countId,max){const len=document.getElementById(inputId).value.length;const el=document.getElementById(countId);el.textContent=`${len}/${max}`;el.className=len>max*0.9?'char-count over':'char-count';}
+function updatePreview(){const h1=document.getElementById('h1').value,h2=document.getElementById('h2').value,h3=document.getElementById('h3').value,d1=document.getElementById('d1').value,d2=document.getElementById('d2').value,url=document.getElementById('displayUrl').value;const hl=[h1,h2,h3].filter(Boolean).join(' | ')||'Your headlines here';document.getElementById('previewUrl').textContent=url||'www.example.com';document.getElementById('previewHeadlines').innerHTML=`<span class="ad-label-badge">Ad</span>${hl}`;document.getElementById('previewDesc').textContent=[d1,d2].filter(Boolean).join(' ')||'Your description will appear here...';}
+function handleFiles(){const input=document.getElementById('lpFiles');uploadedFiles=[...uploadedFiles,...input.files];renderFileList();input.value='';}
+function removeFile(i){uploadedFiles.splice(i,1);renderFileList();}
+function renderFileList(){const list=document.getElementById('fileList');if(!uploadedFiles.length){list.innerHTML='';return;}list.innerHTML=uploadedFiles.map((f,i)=>`<div class="file-item"><span>${f.name} <span style="color:#444;font-size:11px">(${(f.size/1024).toFixed(0)}KB)</span></span><button class="file-remove" onclick="removeFile(${i})">×</button></div>`).join('');}
+function setStatus(msg){document.getElementById('statusBar').classList.add('visible');document.getElementById('statusText').textContent=msg;}
+function hideStatus(){document.getElementById('statusBar').classList.remove('visible');}
+function showError(msg){document.getElementById('errorBar').textContent=msg;document.getElementById('errorBar').classList.add('visible');}
+function hideError(){document.getElementById('errorBar').classList.remove('visible');}
 
-function toggleCluster(id, el) {
-  if (selectedClusters.has(id)) { if (selectedClusters.size === 1) return; selectedClusters.delete(id); el.classList.remove('active'); }
-  else { selectedClusters.add(id); el.classList.add('active'); }
-}
-function toggleNemotron(i, el) {
-  if (selectedNemotron.has(i)) { selectedNemotron.delete(i); el.classList.remove('active'); }
-  else { selectedNemotron.add(i); el.classList.add('active'); }
-}
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('modeDefault').classList.toggle('active', mode === 'clusters');
-  document.getElementById('modeNemotron').classList.toggle('active', mode === 'nemotron');
-  document.getElementById('clusterChipsRow').style.display  = mode === 'clusters' ? 'flex' : 'none';
-  document.getElementById('nemotronChipsRow').style.display = mode === 'nemotron' ? 'flex' : 'none';
-}
+function renderResults(data){
+  const summary=data.summary||{},journeys=data.segment_journeys||[];
+  const healthH=summary.overall_funnel_health||'weak';
+  const healthMap={strong:'STRONG',moderate:'MODERATE',weak:'WEAK'};
 
-// ── Landing page upload ────────────────────────────────────────────────────
-const uploadZone = document.getElementById('uploadZone');
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadZone.classList.remove('drag-over');
-  handleFiles(e.dataTransfer.files);
-});
-
-async function handleFiles(files) {
-  const arr = [...files];
-  for (const file of arr) {
-    if (lpImages.length >= 6) break;
-    if (file.type === 'application/pdf') {
-      await rasterisePDF(file);
-    } else if (file.type.startsWith('image/')) {
-      await addImageFile(file);
-    }
-  }
-  renderThumbs();
-}
-
-function addImageFile(file) {
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const dataUrl = e.target.result;
-      const b64     = dataUrl.split(',')[1];
-      lpImages.push({ dataUrl, b64, name: file.name });
-      resolve();
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function rasterisePDF(file) {
-  if (!window.pdfjsLib) {
-    showError('PDF support failed to load. Please upload screenshots as images instead.');
-    return;
-  }
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const maxPages = Math.min(pdf.numPages, 6 - lpImages.length);
-  for (let i = 1; i <= maxPages; i++) {
-    const page    = await pdf.getPage(i);
-    const vp      = page.getViewport({ scale: 1.5 });
-    const canvas  = document.createElement('canvas');
-    canvas.width  = vp.width;
-    canvas.height = vp.height;
-    const ctx     = canvas.getContext('2d');
-    await page.render({ canvasContext: ctx, viewport: vp }).promise;
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    const b64     = dataUrl.split(',')[1];
-    lpImages.push({ dataUrl, b64, name: `${file.name} — page ${i}` });
-  }
-}
-
-function removeImage(idx) {
-  lpImages.splice(idx, 1);
-  renderThumbs();
-}
-
-function renderThumbs() {
-  const container = document.getElementById('lpThumbs');
-  const countPill = document.getElementById('lpCountPill');
-  const convRow   = document.getElementById('convGoalRow');
-  const scoreBtn  = document.getElementById('scoreBtn');
-
-  container.innerHTML = lpImages.map((img, i) => `
-    <div class="lp-thumb">
-      <img src="${img.dataUrl}" alt="${img.name}" title="${img.name}">
-      <button class="rm-btn" onclick="removeImage(${i})">×</button>
-    </div>
-  `).join('');
-
-  if (lpImages.length > 0) {
-    countPill.textContent = `${lpImages.length} page${lpImages.length > 1 ? 's' : ''} added — full journey scoring enabled`;
-    countPill.className = 'lp-count-pill has-files';
-    convRow.style.display = 'flex';
-    scoreBtn.textContent = 'Score Full Journey';
-  } else {
-    countPill.textContent = 'No landing page added — ad-only scoring';
-    countPill.className = 'lp-count-pill';
-    convRow.style.display = 'none';
-    scoreBtn.textContent = 'Score Ad';
-  }
-}
-
-// ── Utils ──────────────────────────────────────────────────────────────────
-function countChars(inputId, countId, max) {
-  const len = document.getElementById(inputId).value.length;
-  const el  = document.getElementById(countId);
-  el.textContent = `${len}/${max}`;
-  el.className   = len > max * 0.9 ? 'over' : '';
-}
-
-function updatePreview() {
-  const h1 = document.getElementById('h1').value;
-  const h2 = document.getElementById('h2').value;
-  const h3 = document.getElementById('h3').value;
-  const d1 = document.getElementById('d1').value;
-  const d2 = document.getElementById('d2').value;
-  const url = document.getElementById('displayUrl').value;
-
-  const headlines = [h1, h2, h3].filter(Boolean).join(' | ') || 'Headline 1 | Headline 2 | Headline 3';
-  document.getElementById('previewUrl').textContent     = url || 'www.example.com';
-  document.getElementById('previewHeadlines').innerHTML = `<span class="ad-label-badge">Ad</span>${headlines}`;
-  document.getElementById('previewDesc').textContent    = [d1, d2].filter(Boolean).join(' ') || 'Your description will appear here...';
-}
-
-function setStatus(msg) { document.getElementById('statusBar').classList.add('visible'); document.getElementById('statusText').textContent = msg; }
-function hideStatus()   { document.getElementById('statusBar').classList.remove('visible'); }
-function showError(msg) { document.getElementById('errorBar').textContent = msg; document.getElementById('errorBar').classList.add('visible'); }
-function hideError()    { document.getElementById('errorBar').classList.remove('visible'); }
-
-function emotionClass(e) {
-  const map = { positive: 'positive', neutral: 'neutral', negative: 'negative', suspicious: 'suspicious' };
-  return 'emotion-' + (map[e] || 'neutral');
-}
-function ctrDelta(predicted, benchmark) {
-  const d = (predicted - benchmark).toFixed(2);
-  if (d > 0) return `<span class="ctr-vs up">↑ +${d}% vs benchmark</span>`;
-  if (d < 0) return `<span class="ctr-vs down">↓ ${d}% vs benchmark</span>`;
-  return `<span class="ctr-vs">= benchmark</span>`;
-}
-function avgScore(scores) {
-  const vals = Object.values(scores).filter(v => typeof v === 'number');
-  return vals.length ? (vals.reduce((a,b) => a+b,0) / vals.length).toFixed(1) : '—';
-}
-
-// ── Score ──────────────────────────────────────────────────────────────────
-async function scoreAd() {
-  const h1 = document.getElementById('h1').value.trim();
-  const d1 = document.getElementById('d1').value.trim();
-  const kw = document.getElementById('keyword').value.trim();
-
-  if (!h1) { showError('Headline 1 is required.'); return; }
-  if (!d1) { showError('Description 1 is required.'); return; }
-  if (!kw) { showError('Target keyword is required.'); return; }
-
-  hideError();
-  document.getElementById('scoreBtn').disabled = true;
-
-  const hasLandingPage = lpImages.length > 0;
-  setStatus(hasLandingPage
-    ? `Analysing ad creative and ${lpImages.length} landing page image${lpImages.length > 1 ? 's' : ''} across segments...`
-    : 'Scoring creative quality and estimating performance...'
-  );
-
-  const base = {
-    headline_1:          h1,
-    headline_2:          document.getElementById('h2').value,
-    headline_3:          document.getElementById('h3').value,
-    description_1:       d1,
-    description_2:       document.getElementById('d2').value,
-    display_url:         document.getElementById('displayUrl').value,
-    target_keyword:      kw,
-    industry:            document.getElementById('industry').value,
-    monthly_impressions: parseInt(document.getElementById('impressions').value) || 10000,
-  };
-
-  if (currentMode === 'nemotron') {
-    const segs = [...selectedNemotron].map(i => ({ name: savedSegments[i].name, ...savedSegments[i].criteria }));
-    if (!segs.length) { showError('Select at least one segment.'); document.getElementById('scoreBtn').disabled = false; hideStatus(); return; }
-    base.nemotron_segments = segs;
-    base.mode = 'nemotron';
-  } else {
-    base.cluster_ids = [...selectedClusters];
-    base.mode = 'clusters';
-  }
-
-  try {
-    let endpoint, body;
-    if (hasLandingPage) {
-      endpoint = `${API}/search-ad/score-journey`;
-      body = {
-        ...base,
-        landing_page_images: lpImages.map(img => img.b64),
-        conversion_goal: document.getElementById('convGoal').value.trim() || 'complete the primary call to action',
-      };
-    } else {
-      endpoint = `${API}/search-ad/score`;
-      body = base;
-    }
-
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Scoring failed'); }
-    const data = await res.json();
-    hideStatus();
-
-    if (hasLandingPage) {
-      renderJourneyResults(data);
-    } else {
-      renderResults(data);
-    }
-  } catch(e) {
-    hideStatus();
-    showError('Error: ' + e.message);
-  }
-
-  document.getElementById('scoreBtn').disabled = false;
-}
-
-// ── Render: ad-only results (unchanged) ───────────────────────────────────
-function renderResults(data) {
-  const summary  = data.summary || {};
-  const segments = data.segment_scores || [];
-
-  const allScores = segments.map(s => s.creative_scores || {});
-  const avgScores = {};
-  ['relevance','headline_strength','description_quality','url_clarity','overall_quality'].forEach(k => {
-    const vals = allScores.map(s => s[k]).filter(v => typeof v === 'number');
-    avgScores[k] = vals.length ? (vals.reduce((a,b) => a+b,0)/vals.length).toFixed(1) : '—';
-  });
-
-  const ctrDiff  = summary.ctr_vs_benchmark;
-  const ctrClass = ctrDiff > 0 ? 'positive' : 'negative';
-  const ctrSign  = ctrDiff > 0 ? '+' : '';
-
-  const segCards = segments.map(r => {
-    const cs   = r.creative_scores || {};
-    const ar   = r.audience_reaction || {};
-    const pe   = r.performance_estimate || {};
-    const cf   = r.creative_feedback || {};
-    const diff = (pe.predicted_ctr - r.benchmark_ctr).toFixed(2);
-    const diffClass = diff > 0 ? 'up' : 'down';
-    const diffSign  = diff > 0 ? '+' : '';
-
-    return `
-    <div class="seg-card">
-      <div class="seg-accent" style="background:${r.cluster_color}"></div>
-      <div class="seg-header">
-        <div>
-          <div class="seg-name">${r.cluster_label}</div>
-          ${r.persona_count ? `<div class="seg-count">${r.persona_count} personas</div>` : ''}
+  const journeyCards=journeys.map((j,i)=>{
+    const ad=j.ad_stage||{},lp=j.landing_page_stage||{},cv=j.conversion_stage||{},vd=j.journey_verdict||{},pe=j.performance_estimates||{};
+    const hasLP=lp&&!lp.skipped;
+    return`<div class="journey-card" id="jcard${i}">
+      <div class="journey-header" onclick="toggleCard(${i})">
+        <div class="journey-accent" style="background:${j.cluster_color}"></div>
+        <div><div class="journey-name">${j.cluster_label}</div>${j.persona_count?`<div class="journey-count">${j.persona_count} personas</div>`:''}</div>
+        <div class="journey-pills">
+          <span class="journey-pill pill-click ${ad.would_click?'yes':'no'}">${ad.would_click?'✓ Clicks':'✗ No Click'}</span>
+          <span class="journey-pill pill-convert ${cv.would_convert?'yes':'no'}">${cv.would_convert?'✓ Converts':'✗ No Convert'}</span>
+          <span class="journey-pill pill-health ${vd.funnel_health||'weak'}">${(vd.funnel_health||'WEAK').toUpperCase()}</span>
         </div>
-        <span class="emotion-badge ${emotionClass(ar.emotional_response)}">${ar.emotional_response || 'neutral'}</span>
+        <span class="expand-icon">▼</span>
       </div>
-      <div class="ctr-block">
-        <span class="ctr-val">${pe.predicted_ctr}%</span>
-        <span class="ctr-label">Predicted CTR</span>
-        ${ctrDelta(pe.predicted_ctr, r.benchmark_ctr)}
-      </div>
-      <div class="score-bars">
-        <div class="s-bar-row">
-          <span class="s-bar-label">Creative</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(cs.overall_quality||0)*10}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${cs.overall_quality||'—'}/10</span>
+      <div class="journey-body">
+        <div class="stages-row">
+          <div class="stage-col">
+            <div class="stage-col-title"><span class="num">1</span>Ad Stage</div>
+            <div class="stage-metric"><span class="val">${ad.click_likelihood||0}%</span><span class="unit">Click likelihood</span></div>
+            <div class="mini-bar-row"><span class="mini-bar-label">Headline</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(ad.headline_strength||0)*10}%;background:${j.cluster_color}"></div></div><span class="mini-bar-val">${ad.headline_strength||'—'}/10</span></div>
+            <div class="mini-bar-row"><span class="mini-bar-label">Relevance</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(ad.relevance_to_segment||0)*10}%;background:${j.cluster_color}"></div></div><span class="mini-bar-val">${ad.relevance_to_segment||'—'}/10</span></div>
+            <div class="stage-text"><strong>Reasoning</strong>${ad.click_reasoning||'—'}</div>
+            <div class="stage-text"><strong>Predicted CTR</strong>${pe.predicted_ctr||'—'}%</div>
+          </div>
+          <div class="stage-col">
+            <div class="stage-col-title"><span class="num">2</span>Landing Page</div>
+            ${hasLP?`
+            <div class="stage-metric"><span class="val">${100-(lp.drop_off_likelihood||50)}%</span><span class="unit">Stay rate</span></div>
+            <div class="mini-bar-row"><span class="mini-bar-label">Promise</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(lp.promise_match||0)*10}%;background:${j.cluster_color}"></div></div><span class="mini-bar-val">${lp.promise_match||'—'}/10</span></div>
+            <div class="mini-bar-row"><span class="mini-bar-label">Trust</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(lp.trust_signals||0)*10}%;background:${j.cluster_color}"></div></div><span class="mini-bar-val">${lp.trust_signals||'—'}/10</span></div>
+            <div class="mini-bar-row"><span class="mini-bar-label">Clarity</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(lp.clarity||0)*10}%;background:${j.cluster_color}"></div></div><span class="mini-bar-val">${lp.clarity||'—'}/10</span></div>
+            <div class="stage-text"><strong>First impression</strong>${lp.first_impression||'—'}</div>
+            <div class="stage-text"><strong>Friction</strong>${lp.friction_points||'—'}</div>
+            <div class="stage-text"><strong>Scroll depth</strong>${(lp.scroll_depth||'—').replace(/_/g,' ')}</div>`
+            :`<div class="stage-text" style="color:#444;margin-top:8px">No landing page uploaded.</div>`}
+          </div>
+          <div class="stage-col">
+            <div class="stage-col-title"><span class="num">3</span>Conversion</div>
+            <div class="stage-metric"><span class="val">${cv.conversion_likelihood||0}%</span><span class="unit">Convert likelihood</span></div>
+            <div class="mini-bar-row"><span class="mini-bar-label">Trust score</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(cv.trust_score||0)*10}%;background:${j.cluster_color}"></div></div><span class="mini-bar-val">${cv.trust_score||'—'}/10</span></div>
+            <div class="stage-text"><strong>Reasoning</strong>${cv.conversion_reasoning||'—'}</div>
+            ${cv.main_objection?`<div class="stage-text"><strong>Main objection</strong>${cv.main_objection}</div>`:''}
+            <div class="stage-text"><strong>Predicted CVR</strong>${pe.predicted_cvr||'—'}%</div>
+          </div>
         </div>
-        <div class="s-bar-row">
-          <span class="s-bar-label">Relevance</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(ar.relevance_to_segment||0)*10}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${ar.relevance_to_segment||'—'}/10</span>
-        </div>
-        <div class="s-bar-row">
-          <span class="s-bar-label">Trust</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(ar.trust_score||0)*10}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${ar.trust_score||'—'}/10</span>
-        </div>
-        <div class="s-bar-row">
-          <span class="s-bar-label">Click Likelihood</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${ar.click_likelihood||0}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${ar.click_likelihood||'—'}%</span>
+        <div class="verdict-row">
+          <div class="verdict-title">Journey Verdict${vd.weakest_stage?` — Weakest stage: <span class="weakest-tag">${vd.weakest_stage.replace(/_/g,' ')}</span>`:''}</div>
+          <div class="verdict-insight">${vd.key_insight||'—'}</div>
+          <div class="verdict-rec"><strong>Top Recommendation</strong>${vd.top_recommendation||'—'}</div>
         </div>
       </div>
-      <div class="feedback-rows">
-        ${ar.click_reason         ? `<div class="feedback-row"><strong>Click Reasoning</strong>${ar.click_reason}</div>` : ''}
-        ${ar.objection            ? `<div class="feedback-row"><strong>Objection</strong>${ar.objection}</div>` : ''}
-        ${cf.strongest_element    ? `<div class="feedback-row"><strong>Creative Strength</strong>${cf.strongest_element}</div>` : ''}
-        ${cf.weakest_element      ? `<div class="feedback-row"><strong>Creative Weakness</strong>${cf.weakest_element}</div>` : ''}
-        ${cf.improvement_suggestion ? `<div class="feedback-row"><strong>Suggested Rewrite</strong>${cf.improvement_suggestion}</div>` : ''}
-      </div>
-      <div class="click-pill ${ar.would_click ? 'yes' : 'no'}">${ar.would_click ? '✓ Would Click' : '✗ Would Not Click'}</div>
     </div>`;
   }).join('');
 
-  document.getElementById('resultsPanel').innerHTML = `
+  document.getElementById('resultsPanel').innerHTML=`
+    <div class="health-banner ${healthH}">
+      <div><div class="health-label">Funnel: ${healthMap[healthH]||'WEAK'}</div><div class="health-sub">${summary.segments_scored||0} segments · ${data.has_landing_page?(data.landing_pages||[]).length+' landing page file(s)':'Ad only'}</div></div>
+      <div class="health-stats">
+        <div class="health-stat"><div class="val">${(summary.estimated_monthly_clicks||0).toLocaleString()}</div><div class="lbl">Est. Clicks</div></div>
+        <div class="health-stat"><div class="val">${(summary.estimated_monthly_conversions||0).toLocaleString()}</div><div class="lbl">Est. Conversions</div></div>
+      </div>
+    </div>
     <div class="summary-grid">
-      <div class="summary-card">
-        <div class="metric">${summary.avg_predicted_ctr}%</div>
-        <div class="metric-label">Predicted CTR</div>
-        <div class="metric-sub">Benchmark: ${summary.benchmark_ctr}%</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric ${ctrClass}">${ctrSign}${ctrDiff}%</div>
-        <div class="metric-label">vs Benchmark</div>
-        <div class="metric-sub">${ctrDiff > 0 ? 'Above average' : ctrDiff < 0 ? 'Below average' : 'On benchmark'}</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${(summary.estimated_monthly_clicks||0).toLocaleString()}</div>
-        <div class="metric-label">Est. Monthly Clicks</div>
-        <div class="metric-sub">${(summary.monthly_impressions||0).toLocaleString()} impressions</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${avgScores.overall_quality}</div>
-        <div class="metric-label">Creative Score</div>
-        <div class="metric-sub">Out of 10</div>
-      </div>
+      <div class="summary-card"><div class="metric">${summary.avg_predicted_ctr||'—'}%</div><div class="metric-label">Predicted CTR</div><div class="metric-sub">Benchmark: ${summary.benchmark_ctr||'—'}%</div></div>
+      <div class="summary-card"><div class="metric">${summary.avg_predicted_cvr||'—'}%</div><div class="metric-label">Predicted CVR</div><div class="metric-sub">Benchmark: ${summary.benchmark_cvr||'—'}%</div></div>
+      <div class="summary-card"><div class="metric">${summary.avg_click_likelihood||'—'}%</div><div class="metric-label">Avg Click Likelihood</div><div class="metric-sub">Avg convert: ${summary.avg_conversion_likelihood||'—'}%</div></div>
     </div>
+    <div class="segments-heading">Segment Journeys</div>
+    ${journeyCards}`;
 
-    <div class="quality-section">
-      <div class="quality-title">Creative Quality Breakdown</div>
-      <div class="quality-bars">
-        <div class="q-bar-row">
-          <span class="q-bar-label">Keyword Relevance</span>
-          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.relevance||0)*10}%"></div></div>
-          <span class="q-bar-val">${avgScores.relevance}</span>
-        </div>
-        <div class="q-bar-row">
-          <span class="q-bar-label">Headline Strength</span>
-          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.headline_strength||0)*10}%"></div></div>
-          <span class="q-bar-val">${avgScores.headline_strength}</span>
-        </div>
-        <div class="q-bar-row">
-          <span class="q-bar-label">Description Quality</span>
-          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.description_quality||0)*10}%"></div></div>
-          <span class="q-bar-val">${avgScores.description_quality}</span>
-        </div>
-        <div class="q-bar-row">
-          <span class="q-bar-label">URL Clarity</span>
-          <div class="q-bar-track"><div class="q-bar-fill" style="width:${(avgScores.url_clarity||0)*10}%"></div></div>
-          <span class="q-bar-val">${avgScores.url_clarity}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="segments-heading">Segment Scores</div>
-    <div class="seg-grid">${segCards}</div>`;
+  toggleCard(0);
 }
 
-// ── Render: full journey results ──────────────────────────────────────────
-function renderJourneyResults(data) {
-  const summary  = data.summary || {};
-  const segments = data.segment_scores || [];
+function toggleCard(i){const card=document.getElementById(`jcard${i}`);if(card)card.classList.toggle('expanded');}
 
-  const ctrDiff  = summary.ctr_vs_benchmark || 0;
-  const ctrClass = ctrDiff > 0 ? 'positive' : 'negative';
-  const ctrSign  = ctrDiff > 0 ? '+' : '';
-
-  const weakStage = summary.most_common_weak_stage || 'unknown';
-  function stageClass(s) { return s === weakStage ? 'weak' : ''; }
-
-  const segCards = segments.map((r, idx) => {
-    const ad  = r.ad_stage || {};
-    const lp  = r.landing_page_stage || {};
-    const cv  = r.conversion_stage || {};
-    const fv  = r.funnel_verdict || {};
-    const adCs = ad.creative_scores || {};
-
-    const panelId = `panel_${idx}`;
-
-    return `
-    <div class="seg-card">
-      <div class="seg-accent" style="background:${r.cluster_color}"></div>
-      <div class="seg-header">
-        <div>
-          <div class="seg-name">${r.cluster_label}</div>
-          ${r.persona_count ? `<div class="seg-count">${r.persona_count} personas</div>` : ''}
-        </div>
-        <span class="emotion-badge ${emotionClass(ad.emotional_response)}">${ad.emotional_response || 'neutral'}</span>
-      </div>
-
-      <!-- Funnel mini-bar -->
-      <div class="score-bars">
-        <div class="s-bar-row">
-          <span class="s-bar-label">Click Intent</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${ad.click_likelihood||0}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${ad.click_likelihood||'—'}%</span>
-        </div>
-        <div class="s-bar-row">
-          <span class="s-bar-label">Page Match</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(lp.promise_match||0)*10}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${lp.promise_match||'—'}/10</span>
-        </div>
-        <div class="s-bar-row">
-          <span class="s-bar-label">Conversion</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${cv.conversion_likelihood||0}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${cv.conversion_likelihood||'—'}%</span>
-        </div>
-        <div class="s-bar-row">
-          <span class="s-bar-label">Funnel Score</span>
-          <div class="s-bar-track"><div class="s-bar-fill" style="width:${(fv.overall_funnel_score||0)*10}%;background:${r.cluster_color}"></div></div>
-          <span class="s-bar-val">${fv.overall_funnel_score||'—'}/10</span>
-        </div>
-      </div>
-
-      <!-- Stage tabs -->
-      <div class="stage-tabs">
-        <button class="stage-tab active" onclick="switchTab('${panelId}', 'ad', this)">Ad</button>
-        <button class="stage-tab" onclick="switchTab('${panelId}', 'lp', this)">Landing Page</button>
-        <button class="stage-tab" onclick="switchTab('${panelId}', 'cv', this)">Conversion</button>
-        <button class="stage-tab" onclick="switchTab('${panelId}', 'fv', this)">Verdict</button>
-      </div>
-
-      <!-- Ad stage -->
-      <div class="stage-panel active" id="${panelId}_ad">
-        <div class="ctr-block" style="padding-left:0">
-          <span class="ctr-val">${ad.predicted_ctr || r.benchmark_ctr}%</span>
-          <span class="ctr-label">Predicted CTR</span>
-          ${ctrDelta(ad.predicted_ctr || r.benchmark_ctr, r.benchmark_ctr)}
-        </div>
-        <div class="score-bars" style="padding-left:0">
-          <div class="s-bar-row">
-            <span class="s-bar-label">Creative</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(adCs.overall_quality||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${adCs.overall_quality||'—'}/10</span>
-          </div>
-          <div class="s-bar-row">
-            <span class="s-bar-label">Headlines</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(adCs.headline_strength||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${adCs.headline_strength||'—'}/10</span>
-          </div>
-        </div>
-        <div class="feedback-rows">
-          ${ad.click_reason ? `<div class="feedback-row"><strong>Why They Click (or Don't)</strong>${ad.click_reason}</div>` : ''}
-        </div>
-        <div class="click-pill ${ad.would_click ? 'yes' : 'no'}">${ad.would_click ? '✓ Would Click' : '✗ Would Not Click'}</div>
-      </div>
-
-      <!-- Landing page stage -->
-      <div class="stage-panel" id="${panelId}_lp">
-        <div class="feedback-rows">
-          ${lp.first_impression ? `<div class="feedback-row"><strong>First Impression</strong>${lp.first_impression}</div>` : ''}
-        </div>
-        <div class="score-bars" style="padding-left:0;margin-top:10px">
-          <div class="s-bar-row">
-            <span class="s-bar-label">Promise Match</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(lp.promise_match||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${lp.promise_match||'—'}/10</span>
-          </div>
-          <div class="s-bar-row">
-            <span class="s-bar-label">Visual Appeal</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(lp.visual_appeal||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${lp.visual_appeal||'—'}/10</span>
-          </div>
-          <div class="s-bar-row">
-            <span class="s-bar-label">Clarity</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(lp.message_clarity||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${lp.message_clarity||'—'}/10</span>
-          </div>
-          <div class="s-bar-row">
-            <span class="s-bar-label">Trust Signals</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(lp.trust_signals||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${lp.trust_signals||'—'}/10</span>
-          </div>
-        </div>
-        ${lp.scroll_behaviour ? `<div class="scroll-badge">${scrollLabel(lp.scroll_behaviour)}</div>` : ''}
-        <div class="feedback-rows">
-          ${lp.what_works     ? `<div class="feedback-row"><strong>What Resonates</strong>${lp.what_works}</div>` : ''}
-          ${lp.friction_points ? `<div class="feedback-row"><strong>Friction Points</strong>${lp.friction_points}</div>` : ''}
-          ${lp.drop_off_section ? `<div class="feedback-row"><strong>Drop-off Point</strong>${lp.drop_off_section}</div>` : ''}
-        </div>
-      </div>
-
-      <!-- Conversion stage -->
-      <div class="stage-panel" id="${panelId}_cv">
-        <div class="ctr-block" style="padding-left:0">
-          <span class="ctr-val">${cv.conversion_likelihood||'—'}%</span>
-          <span class="ctr-label">Conversion Likelihood</span>
-        </div>
-        <div class="score-bars" style="padding-left:0">
-          <div class="s-bar-row">
-            <span class="s-bar-label">Overall Trust</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(cv.trust_score||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${cv.trust_score||'—'}/10</span>
-          </div>
-        </div>
-        <div class="feedback-rows">
-          ${cv.conversion_motivator ? `<div class="feedback-row"><strong>What Pushes Them to Convert</strong>${cv.conversion_motivator}</div>` : ''}
-          ${cv.conversion_blocker   ? `<div class="feedback-row"><strong>What Blocks Conversion</strong>${cv.conversion_blocker}</div>` : ''}
-        </div>
-        <div class="click-pill ${cv.would_convert ? 'yes' : 'no'}">${cv.would_convert ? '✓ Would Convert' : '✗ Would Not Convert'}</div>
-      </div>
-
-      <!-- Funnel verdict -->
-      <div class="stage-panel" id="${panelId}_fv">
-        <div class="score-bars" style="padding-left:0">
-          <div class="s-bar-row">
-            <span class="s-bar-label">Journey Fit</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(fv.journey_coherence||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${fv.journey_coherence||'—'}/10</span>
-          </div>
-          <div class="s-bar-row">
-            <span class="s-bar-label">Funnel Score</span>
-            <div class="s-bar-track"><div class="s-bar-fill" style="width:${(fv.overall_funnel_score||0)*10}%;background:${r.cluster_color}"></div></div>
-            <span class="s-bar-val">${fv.overall_funnel_score||'—'}/10</span>
-          </div>
-        </div>
-        ${fv.weakest_stage ? `<div style="font-family:Montserrat,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--pink);margin:10px 0 6px">Weakest Stage: ${fv.weakest_stage}</div>` : ''}
-        ${fv.biggest_fix ? `<div class="feedback-row" style="border:none"><strong>Top Fix for This Segment</strong>${fv.biggest_fix}</div>` : ''}
-      </div>
-
-    </div>`;
-  }).join('');
-
-  document.getElementById('resultsPanel').innerHTML = `
-    <!-- Journey funnel summary -->
-    <div class="summary-grid-5">
-      <div class="summary-card">
-        <div class="metric">${summary.avg_predicted_ctr || '—'}%</div>
-        <div class="metric-label">Predicted CTR</div>
-        <div class="metric-sub">Benchmark: ${summary.benchmark_ctr}%</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric ${ctrClass}">${ctrSign}${ctrDiff}%</div>
-        <div class="metric-label">vs Benchmark</div>
-        <div class="metric-sub">${ctrDiff > 0 ? 'Above average' : ctrDiff < 0 ? 'Below average' : 'On benchmark'}</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${summary.avg_landing_page_score || '—'}/10</div>
-        <div class="metric-label">Landing Page</div>
-        <div class="metric-sub">Promise match avg</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${summary.avg_conversion_likelihood || '—'}%</div>
-        <div class="metric-label">Conversion Rate</div>
-        <div class="metric-sub">Est. ${(summary.estimated_monthly_converts||0).toLocaleString()} converts/mo</div>
-      </div>
-      <div class="summary-card">
-        <div class="metric">${summary.avg_funnel_score || '—'}/10</div>
-        <div class="metric-label">Funnel Score</div>
-        <div class="metric-sub">End-to-end health</div>
-      </div>
-    </div>
-
-    <!-- Funnel flow banner -->
-    <div class="funnel-banner">
-      <div class="funnel-step ${stageClass('ad')}">
-        <div class="funnel-step-label">Ad</div>
-        <div class="funnel-step-val">${summary.avg_click_likelihood || '—'}%</div>
-        <div class="funnel-step-sub">click intent</div>
-      </div>
-      <div class="funnel-step ${stageClass('landing_page')}">
-        <div class="funnel-step-label">Landing Page</div>
-        <div class="funnel-step-val">${summary.avg_landing_page_score || '—'}/10</div>
-        <div class="funnel-step-sub">page quality</div>
-      </div>
-      <div class="funnel-step ${stageClass('conversion')}">
-        <div class="funnel-step-label">Conversion</div>
-        <div class="funnel-step-val">${summary.avg_conversion_likelihood || '—'}%</div>
-        <div class="funnel-step-sub">would convert</div>
-      </div>
-    </div>
-    ${weakStage !== 'unknown' ? `<div style="font-family:Montserrat,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--pink);margin-bottom:1.5rem">⚠ Most segments drop off at: ${weakStage.replace('_', ' ')}</div>` : ''}
-
-    <div class="segments-heading">Segment Journey Scores</div>
-    <div class="seg-grid">${segCards}</div>`;
+async function scoreJourney(){
+  const h1=document.getElementById('h1').value.trim(),d1=document.getElementById('d1').value.trim(),kw=document.getElementById('keyword').value.trim();
+  if(!h1){showError('Headline 1 is required.');return;}
+  if(!d1){showError('Description 1 is required.');return;}
+  if(!kw){showError('Target keyword is required.');return;}
+  hideError();document.getElementById('scoreBtn').disabled=true;
+  setStatus(`Scoring journey across ${currentMode==='nemotron'?[...selectedNemotron].length:selectedClusters.size} segments...`);
+  const formData=new FormData();
+  formData.append('headline_1',h1);formData.append('headline_2',document.getElementById('h2').value);formData.append('headline_3',document.getElementById('h3').value);
+  formData.append('description_1',d1);formData.append('description_2',document.getElementById('d2').value);
+  formData.append('display_url',document.getElementById('displayUrl').value);formData.append('target_keyword',kw);
+  formData.append('conversion_action',document.getElementById('conversionAction').value);
+  formData.append('industry',document.getElementById('industry').value);formData.append('monthly_impressions',document.getElementById('impressions').value);
+  uploadedFiles.forEach(f=>formData.append('landing_pages',f));
+  if(currentMode==='nemotron'){
+    const segs=[...selectedNemotron].map(i=>({name:savedSegments[i].name,...savedSegments[i].criteria}));
+    if(!segs.length){showError('Select at least one segment.');document.getElementById('scoreBtn').disabled=false;hideStatus();return;}
+    formData.append('nemotron_segments',JSON.stringify(segs));formData.append('mode','nemotron');
+  }else{formData.append('cluster_ids',JSON.stringify([...selectedClusters]));formData.append('mode','clusters');}
+  try{
+    const res=await fetch(`${API}/search-ad/score`,{method:'POST',body:formData});
+    if(!res.ok){const e=await res.json();throw new Error(e.detail||'Scoring failed');}
+    const data=await res.json();hideStatus();renderResults(data);
+  }catch(e){hideStatus();showError('Error: '+e.message);}
+  document.getElementById('scoreBtn').disabled=false;
 }
 
-function switchTab(panelId, stage, btn) {
-  // deactivate all tabs and panels for this card
-  const card = btn.closest('.seg-card');
-  card.querySelectorAll('.stage-tab').forEach(t => t.classList.remove('active'));
-  card.querySelectorAll('.stage-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(`${panelId}_${stage}`).classList.add('active');
-}
-
-function scrollLabel(behaviour) {
-  const map = {
-    immediate_exit: '↩ Immediate Exit',
-    skims_hero:     '⚡ Skims Hero Only',
-    reads_to_cta:   '→ Reads to CTA',
-    reads_fully:    '✓ Reads Full Page'
-  };
-  return map[behaviour] || behaviour;
-}
-
-initChips();
-updatePreview();
+initChips();updatePreview();
 </script>
 </body>
 </html>
